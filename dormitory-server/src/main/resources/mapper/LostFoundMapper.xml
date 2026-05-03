@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dormitory.dormitoryserver.mapper.LostFoundMapper">
+
+    <select id="pageQuery" resultType="com.dormitory.dormitoryserver.entity.LostFound">
+        select lf.*, s.name as studentName, s.student_no as studentNo
+        from lost_found lf
+        left join student s on lf.student_id = s.id
+        <where>
+            <if test="type != null">
+                and type = #{type}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="category != null and category != ''">
+                and category = #{category}
+            </if>
+            <if test="title != null and title != ''">
+                and title like concat('%', #{title}, '%')
+            </if>
+            <if test="studentId != null">
+                and student_id = #{studentId}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <update id="update" parameterType="com.dormitory.dormitoryserver.entity.LostFound">
+        update lost_found
+        <set>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="description != null and description != ''">description = #{description},</if>
+            <if test="category != null and category != ''">category = #{category},</if>
+            <if test="location != null and location != ''">location = #{location},</if>
+            <if test="contactInfo != null and contactInfo != ''">contact_info = #{contactInfo},</if>
+            <if test="images != null">images = #{images},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        where id = #{id}
+    </update>
+</mapper>

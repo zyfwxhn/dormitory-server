@@ -1,0 +1,25 @@
+# Maven
+dormitory-server/target/
+dormitory-server/.mvn/wrapper/maven-wrapper.jar
+
+# Node
+dormitory-ui/node_modules/
+dormitory-ui/dist/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env.local
+.env.*.local
+
+# Claude
+.claude/settings.local.json
+
+# Logs
+*.log

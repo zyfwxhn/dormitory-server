@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dormitory.dormitoryserver.mapper.ServiceReservationMapper">
+
+    <select id="getById" resultType="com.dormitory.dormitoryserver.entity.ServiceReservation">
+        SELECT * FROM service_reservation WHERE id = #{id}
+    </select>
+
+    <update id="updateStatus">
+        UPDATE service_reservation
+        SET status = #{status},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <update id="autoCompleteExpiredReservations">
+        UPDATE service_reservation
+        SET status = 1,
+            update_time = NOW()
+        WHERE status = 0
+          AND (
+                    reservation_date &lt; CURRENT_DATE
+                OR (reservation_date = CURRENT_DATE AND end_time &lt; CURRENT_TIME)
+            )
+    </update>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO service_reservation (student_id, device_id, reservation_date, start_time, end_time, status, create_time, update_time)
+        VALUES (#{studentId}, #{deviceId}, #{reservationDate}, #{startTime}, #{endTime}, #{status}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="checkConflict" resultType="int">
+        SELECT count(*) FROM service_reservation
+        WHERE device_id = #{deviceId}
+          AND reservation_date = #{date}
+          AND status != 2 AND (
+                (start_time &lt;= #{startTime} AND end_time > #{startTime})
+                OR (start_time &lt; #{endTime} AND end_time >= #{endTime})
+                OR (start_time >= #{startTime} AND end_time &lt;= #{endTime})
+            )
+    </select>
+
+    <select id="getValidReservationsByDeviceAndDate" resultType="com.dormitory.dormitoryserver.entity.ServiceReservation">
+        SELECT * FROM service_reservation
+        WHERE device_id = #{deviceId}
+          AND reservation_date = #{date}
+          AND status != 2
+        ORDER BY start_time ASC
+    </select>
+
+    <select id="pageByStudentId" resultType="com.dormitory.dormitoryserver.entity.ServiceReservation">
+        SELECT * FROM service_reservation
+        WHERE student_id = #{studentId}
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

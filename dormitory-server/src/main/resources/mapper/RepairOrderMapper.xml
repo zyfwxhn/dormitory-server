@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dormitory.dormitoryserver.mapper.RepairOrderMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO repair_order
+        (student_id, repair_type, description, images, address_snapshot, status, create_time, update_time)
+        VALUES
+            (#{studentId}, #{repairType}, #{description}, #{images}, #{addressSnapshot}, #{status}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="pageQuery" resultType="com.dormitory.dormitoryserver.entity.RepairOrder">
+        SELECT r.*, s.name AS studentName, s.student_no AS studentNo, s.phone AS studentPhone
+        FROM repair_order r
+        LEFT JOIN student s ON r.student_id = s.id
+        <where>
+            r.student_id = #{studentId}
+
+            <if test="queryDTO.status != null">
+                AND status = #{queryDTO.status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="getByIdAndStudentId" resultType="com.dormitory.dormitoryserver.entity.RepairOrder">
+        SELECT r.*, s.name AS studentName, s.student_no AS studentNo, s.phone AS studentPhone
+        FROM repair_order r
+        LEFT JOIN student s ON r.student_id = s.id
+        WHERE r.id = #{id} AND r.student_id = #{studentId}
+    </select>
+
+    <select id="adminPageQuery" resultType="com.dormitory.dormitoryserver.entity.RepairOrder">
+        SELECT r.*, s.name AS studentName, s.student_no AS studentNo, s.phone AS studentPhone
+        FROM repair_order r
+        LEFT JOIN student s ON r.student_id = s.id
+        <where>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="studentId != null">
+                AND student_id = #{studentId}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <update id="update" parameterType="com.dormitory.dormitoryserver.entity.RepairOrder">
+        update repair_order
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="workerId != null">worker_id = #{workerId},</if>
+            <if test="finishImages != null">finish_images = #{finishImages},</if>
+            <if test="evaluationScore != null">evaluation_score = #{evaluationScore},</if>
+            <if test="evaluationContent != null">evaluation_content = #{evaluationContent},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="getStatusCount" resultType="com.dormitory.dormitoryserver.vo.StatusCountVO">
+        SELECT
+            CASE status
+                WHEN 0 THEN '待处理'
+                WHEN 1 THEN '已接单'
+                WHEN 2 THEN '维修中'
+                WHEN 3 THEN '已完成'
+                WHEN 4 THEN '已取消'
+                END AS name,
+            COUNT(id) AS value
+        FROM repair_order
+        GROUP BY status
+    </select>
+
+    <select id="workerPageQuery" resultType="com.dormitory.dormitoryserver.entity.RepairOrder">
+        select r.*, s.name as studentName, s.student_no as studentNo, s.phone as studentPhone
+        from repair_order r
+        left join student s on r.student_id = s.id
+        <where>
+            <if test="dto.status != null and dto.status == 0">
+                and status = 0
+            </if>
+            <if test="dto.status != null and dto.status != 0">
+                and status = #{dto.status}
+                and worker_id = #{workerId}
+            </if>
+            <if test="dto.status == null">
+                and (status = 0 or worker_id = #{workerId})
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+</mapper>

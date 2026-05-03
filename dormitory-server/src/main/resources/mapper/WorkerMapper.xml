@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dormitory.dormitoryserver.mapper.WorkerMapper">
+
+    <select id="getIdleWorkerId" resultType="java.lang.Long">
+        SELECT w.id
+        FROM worker w
+                 LEFT JOIN repair_order r ON w.id = r.worker_id AND r.status IN (1, 2)
+        WHERE w.is_available = 1
+        GROUP BY w.id
+        ORDER BY COUNT(r.id) ASC
+        LIMIT 1
+    </select>
+
+    <select id="getWorkerRanking" resultType="com.dormitory.dormitoryserver.vo.WorkerRankVO">
+        SELECT
+            w.name AS workerName,
+            COUNT(r.id) AS completedCount
+        FROM worker w
+                 LEFT JOIN repair_order r ON w.id = r.worker_id AND r.status = 3
+        GROUP BY w.id, w.name
+        ORDER BY completedCount DESC
+        LIMIT 5
+    </select>
+
+    <select id="getSmartDispatchWorkerId" resultType="java.lang.Long">
+        SELECT w.id
+        FROM worker w
+                 LEFT JOIN repair_order ro ON w.id = ro.worker_id AND ro.status IN (1, 2)
+        WHERE w.is_available = 1
+          AND w.skills LIKE CONCAT('%', #{repairType}, '%')
+        GROUP BY w.id
+        ORDER BY COUNT(ro.id) ASC
+        LIMIT 1
+    </select>
+
+    <select id="pageQuery" resultType="com.dormitory.dormitoryserver.entity.Worker">
+        SELECT * FROM worker
+        <where>
+            <if test="name != null and name != ''">
+                AND name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND phone LIKE CONCAT('%', #{phone}, '%')
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO worker (username, password, name, phone, skills, is_available, create_time, update_time)
+        VALUES (#{username}, #{password}, #{name}, #{phone}, #{skills}, #{isAvailable}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update">
+        UPDATE worker
+        <set>
+            <if test="username != null">username = #{username},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="skills != null">skills = #{skills},</if>
+            <if test="isAvailable != null">is_available = #{isAvailable},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <insert id="insertBatch">
+        INSERT INTO worker (username, password, name, phone, skills, is_available, create_time, update_time)
+        VALUES
+        <foreach collection="list" item="w" separator=",">
+            (#{w.username}, #{w.password}, #{w.name}, #{w.phone}, #{w.skills}, 1, NOW(), NOW())
+        </foreach>
+    </insert>
+</mapper>

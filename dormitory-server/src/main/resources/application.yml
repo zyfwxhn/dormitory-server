@@ -1,0 +1,54 @@
+server:
+  port: 8080
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+  application:
+    name: dormitory-server
+  # 数据库连接配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/dormitory_db?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:3119859920}
+  # Jackson 时间格式化配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      # 如果你的 redis 设了密码，把下面注释打开
+      # password: your_password
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml # 指定 MyBatis 的 XML 映射文件存放位置
+  type-aliases-package: com.dormitory.dormitoryserver.entity    # 给实体类起别名，方便 XML 中书写
+  configuration:
+    map-underscore-to-camel-case: true     # 【关键】开启数据库下划线字段到 Java 驼峰属性的自动映射
+dorm:
+  jwt:
+    # 学生端 JWT 配置
+    student-secret-key: dorm_student_secret_key_123456
+    student-ttl: 7200000 # 过期时间，单位毫秒（这里是2小时）
+    student-token-name: token
+    # 维修员端 JWT 配置
+    worker-secret-key: dorm_worker_secret_key_888888
+    worker-ttl: 7200000
+    worker-token-name: token
+    # 管理员端 JWT 配置
+    admin-secret-key: dorm_admin_secret_key_999999
+    admin-ttl: 7200000
+    admin-token-name: token
+dormitory:
+  alioss:
+    # 使用 ${} 语法占位，如果环境变量没配，会直接报错阻止启动，这是安全的体现
+    endpoint: ${ALI_OSS_ENDPOINT}
+    access-key-id: ${ALI_OSS_AK}
+    access-key-secret: ${ALI_OSS_SK}
+    bucket-name: ${ALI_OSS_BUCKET}

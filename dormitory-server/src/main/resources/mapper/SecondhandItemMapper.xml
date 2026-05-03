@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dormitory.dormitoryserver.mapper.SecondhandItemMapper">
+
+    <select id="pageQuery" resultType="com.dormitory.dormitoryserver.entity.SecondhandItem">
+        select si.*, s.name as studentName, s.student_no as studentNo
+        from secondhand_item si
+        left join student s on si.student_id = s.id
+        <where>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="category != null and category != ''">
+                and category = #{category}
+            </if>
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+            <if test="minPrice != null">
+                and price &gt;= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                and price &lt;= #{maxPrice}
+            </if>
+            <if test="studentId != null">
+                and student_id = #{studentId}
+            </if>
+        </where>
+        <choose>
+            <when test="sortMode == 1">
+                order by price asc
+            </when>
+            <when test="sortMode == 2">
+                order by price desc
+            </when>
+            <otherwise>
+                order by create_time desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <update id="update" parameterType="com.dormitory.dormitoryserver.entity.SecondhandItem">
+        update secondhand_item
+        <set>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="description != null and description != ''">description = #{description},</if>
+            <if test="category != null and category != ''">category = #{category},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="conditionLevel != null and conditionLevel != ''">condition_level = #{conditionLevel},</if>
+            <if test="images != null">images = #{images},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+</mapper>

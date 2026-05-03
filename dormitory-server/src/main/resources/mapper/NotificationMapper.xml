@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dormitory.dormitoryserver.mapper.NotificationMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO notification (student_id, title, content, type, is_read, create_time)
+        VALUES (#{studentId}, #{title}, #{content}, #{type}, #{isRead}, #{createTime})
+    </insert>
+
+    <select id="getByStudentId" resultType="com.dormitory.dormitoryserver.entity.Notification">
+        SELECT * FROM notification
+        WHERE student_id = #{studentId}
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

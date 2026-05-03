@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dormitory.dormitoryserver.mapper.ItemMessageMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO item_message (item_id, from_student_id, to_student_id, content, create_time)
+        VALUES (#{itemId}, #{fromStudentId}, #{toStudentId}, #{content}, #{createTime})
+    </insert>
+
+    <select id="getByItemId" resultType="com.dormitory.dormitoryserver.vo.ItemMessageVO">
+        SELECT
+            m.id,
+            m.item_id AS itemId,
+            m.from_student_id AS fromStudentId,
+            fs.name AS fromStudentName,
+            m.to_student_id AS toStudentId,
+            ts.name AS toStudentName,
+            m.content,
+            m.create_time AS createTime,
+            (m.from_student_id = si.student_id) AS fromSeller
+        FROM item_message m
+        LEFT JOIN student fs ON m.from_student_id = fs.id
+        LEFT JOIN student ts ON m.to_student_id = ts.id
+        LEFT JOIN secondhand_item si ON m.item_id = si.id
+        WHERE m.item_id = #{itemId}
+        ORDER BY m.create_time ASC
+    </select>
+
+</mapper>
