@@ -78,4 +78,5 @@ public class LostFound {
     // === 关联学生信息（查询时 JOIN 填充） ===
     private String studentName;      // 发布人姓名
     private String studentNo;        // 发布人学号
+    private String studentAvatar;    // 发布人头像
 }

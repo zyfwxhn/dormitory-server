@@ -37,4 +37,14 @@ public interface LostFoundService {
      * 管理员违规下架失物招领
      */
     void violate(ViolationReviewDTO dto);
+
+    /**
+     * 管理员分页查询（不过滤 status，可查看所有状态）
+     */
+    PageResult adminPageQuery(LostFoundPageQueryDTO dto);
+
+    /**
+     * 学生发起认领：给发布者发送通知，不暴露双方联系方式
+     */
+    void claim(Long lostFoundId);
 }

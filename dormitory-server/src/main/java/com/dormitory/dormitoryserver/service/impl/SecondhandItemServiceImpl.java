@@ -17,6 +17,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @Slf4j
 public class SecondhandItemServiceImpl implements SecondhandItemService {
@@ -39,6 +41,8 @@ public class SecondhandItemServiceImpl implements SecondhandItemService {
 
         // 初始化状态：0 (在售)
         secondhandItem.setStatus(0);
+        secondhandItem.setCreateTime(LocalDateTime.now());
+        secondhandItem.setUpdateTime(LocalDateTime.now());
 
         // 4. 调用 Mapper 插入数据库
         secondhandItemMapper.insert(secondhandItem);
@@ -101,16 +105,30 @@ public class SecondhandItemServiceImpl implements SecondhandItemService {
     }
 
     @Override
+    public PageResult adminPageQuery(SecondhandItemPageQueryDTO dto) {
+        PageHelper.startPage(dto.getPage(), dto.getPageSize());
+        Page<SecondhandItem> page = secondhandItemMapper.pageQuery(dto);
+        return new PageResult(page.getTotal(), page.getResult());
+    }
+
+    @Override
     public void violate(ViolationReviewDTO dto) {
         log.info("管理员触发违规下架二手商品，ID：{}, 原因：{}", dto.getId(), dto.getReason());
 
+        // 1. 检查存在性
+        SecondhandItem exist = secondhandItemMapper.getById(dto.getId());
+        if (exist == null) {
+            throw new BaseException("该商品不存在");
+        }
+        // 2. 只有待审核状态才能下架
+        if (exist.getStatus() != 0) {
+            throw new BaseException("该商品已被处理，无法重复下架");
+        }
+
         SecondhandItem item = new SecondhandItem();
         item.setId(dto.getId());
-        // 状态 2 表示：已下架
         item.setStatus(2);
-        item.setUpdateTime(java.time.LocalDateTime.now());
-
-        // 复用已有的 update 方法
+        item.setUpdateTime(LocalDateTime.now());
         secondhandItemMapper.update(item);
     }
 }

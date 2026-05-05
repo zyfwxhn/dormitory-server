@@ -43,6 +43,11 @@ public interface RepairOrderService {
     void cancelOrder(Long id);
 
     /**
+     * 按ID查询报修单详情（管理员/维修员使用，不校验学生身份）
+     */
+    RepairOrder getDetailById(Long id);
+
+    /**
      * 智能派单
      * @param orderId 报修单 ID
      */

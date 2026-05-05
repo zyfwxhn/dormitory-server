@@ -8,6 +8,7 @@ import com.dormitory.dormitoryserver.mapper.ServiceReservationMapper;
 import com.dormitory.dormitoryserver.result.PageResult;
 import com.dormitory.dormitoryserver.service.ServiceReservationService;
 import com.dormitory.dormitoryserver.vo.AvailableTimeSlotVO;
+import com.dormitory.dormitoryserver.websocket.WebSocketServer;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -35,6 +35,9 @@ public class ServiceReservationServiceImpl implements ServiceReservationService 
     // 【新增】注入 SpringBoot 的 Redis 模板
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private WebSocketServer webSocketServer;
 
     @Override
     @Transactional // 开启事务
@@ -56,24 +59,28 @@ public class ServiceReservationServiceImpl implements ServiceReservationService 
             throw new BaseException("结束时间必须晚于开始时间！");
         }
 
-        // 2. 构造唯一锁标识
+        Long currentStudentId = BaseContext.getCurrentId();
+
+        // 2. 尝试 Redis 分布式锁（Redis 不可用时降级为纯数据库校验）
         String lockKey = String.format("lock:reservation:device:%d:date:%s:time:%s",
                 dto.getDeviceId(),
                 dto.getReservationDate().toString(),
                 dto.getStartTime().toString());
+        boolean redisLocked = false;
 
-        Long currentStudentId = BaseContext.getCurrentId();
-
-        // 尝试获取锁
-        Boolean isLocked = stringRedisTemplate.opsForValue()
-                .setIfAbsent(lockKey, String.valueOf(currentStudentId), 2, TimeUnit.HOURS);
-
-        if (Boolean.FALSE.equals(isLocked)) {
-            throw new BaseException("手慢了！该设备的这个时段已被其他同学抢占，请重新选择时间。");
+        try {
+            Boolean got = stringRedisTemplate.opsForValue()
+                    .setIfAbsent(lockKey, String.valueOf(currentStudentId), 2, TimeUnit.HOURS);
+            if (Boolean.FALSE.equals(got)) {
+                throw new BaseException("手慢了！该设备的这个时段已被其他同学抢占，请重新选择时间。");
+            }
+            redisLocked = true;
+        } catch (Exception e) {
+            log.warn("Redis 不可用，降级为数据库校验: {}", e.getMessage());
         }
 
         try {
-            // 3. 拿到锁后，数据库兜底防重
+            // 3. 数据库防重校验
             int conflictCount = serviceReservationMapper.checkConflict(
                     dto.getDeviceId(),
                     dto.getReservationDate(),
@@ -82,7 +89,7 @@ public class ServiceReservationServiceImpl implements ServiceReservationService 
             );
 
             if (conflictCount > 0) {
-                throw new BaseException("数据异常！该时间段已被预约，请重新选择时间。");
+                throw new BaseException("该时间段已被预约，请重新选择时间。");
             }
 
             // 4. 数据入库
@@ -98,38 +105,48 @@ public class ServiceReservationServiceImpl implements ServiceReservationService 
             log.info("预约成功，预约单ID: {}", reservation.getId());
 
         } finally {
-            // 【核心修复】：使用 finally 兜底，无论上面是成功落库，还是校验抛异常
-            // 只要你拿到了锁，就必须把它删掉，让出资源！
-            stringRedisTemplate.delete(lockKey);
+            if (redisLocked) {
+                try { stringRedisTemplate.delete(lockKey); } catch (Exception ignored) {}
+            }
         }
     }
 
     @Override
     public List<AvailableTimeSlotVO> getAvailableSlots(Long deviceId, LocalDate reservationDate) {
-        // [原封不动保留你原有的优秀错峰推荐算法]
-        List<ServiceReservation> occupiedList = serviceReservationMapper.getValidReservationsByDeviceAndDate(deviceId, reservationDate);
-        occupiedList.sort(Comparator.comparing(ServiceReservation::getStartTime));
+        List<ServiceReservation> occupiedList = serviceReservationMapper
+                .getValidReservationsByDeviceAndDate(deviceId, reservationDate);
 
         LocalTime businessStart = LocalTime.of(8, 0);
         LocalTime businessEnd = LocalTime.of(22, 0);
 
-        List<AvailableTimeSlotVO> availableSlots = new ArrayList<>();
-        LocalTime currentPointer = businessStart;
+        List<AvailableTimeSlotVO> slots = new ArrayList<>();
+        LocalTime slotStart = businessStart;
 
-        for (ServiceReservation occupied : occupiedList) {
-            if (currentPointer.isBefore(occupied.getStartTime())) {
-                availableSlots.add(new AvailableTimeSlotVO(currentPointer, occupied.getStartTime()));
+        // 按固定1小时划分时段，过滤已被预约的
+        while (slotStart.isBefore(businessEnd)) {
+            LocalTime slotEnd = slotStart.plusHours(1);
+            if (slotEnd.isAfter(businessEnd)) {
+                slotEnd = businessEnd;
             }
-            if (currentPointer.isBefore(occupied.getEndTime())) {
-                currentPointer = occupied.getEndTime();
+            // 跳过已过去的时间段（仅限今天）
+            if (reservationDate.equals(LocalDate.now()) && slotStart.isBefore(LocalTime.now())) {
+                slotStart = slotEnd;
+                continue;
             }
+            // 检查是否与已占用时段冲突
+            boolean conflicted = false;
+            for (ServiceReservation r : occupiedList) {
+                if (slotStart.isBefore(r.getEndTime()) && slotEnd.isAfter(r.getStartTime())) {
+                    conflicted = true;
+                    break;
+                }
+            }
+            if (!conflicted) {
+                slots.add(new AvailableTimeSlotVO(slotStart, slotEnd));
+            }
+            slotStart = slotEnd;
         }
-
-        if (currentPointer.isBefore(businessEnd)) {
-            availableSlots.add(new AvailableTimeSlotVO(currentPointer, businessEnd));
-        }
-
-        return availableSlots;
+        return slots;
     }
 
     @Override
@@ -157,13 +174,22 @@ public class ServiceReservationServiceImpl implements ServiceReservationService 
 
         // 【核心修复】：依据毕设表结构设计，状态 2 为已取消（绝不能写成 3）
         serviceReservationMapper.updateStatus(id, 2, LocalDateTime.now());
+        // 广播时段释放消息，其他学生可刷新可用时段
+        webSocketServer.sendToAllClient("{\"type\":\"reservation_changed\"}");
     }
 
     @Override
     public PageResult pageQuery(Integer page, Integer pageSize) {
         Long studentId = BaseContext.getCurrentId();
         PageHelper.startPage(page, pageSize);
-        Page<ServiceReservation> p = (Page<ServiceReservation>) serviceReservationMapper.pageByStudentId(studentId);
+        Page<ServiceReservation> p = serviceReservationMapper.pageByStudentId(studentId);
+        return new PageResult(p.getTotal(), p.getResult());
+    }
+
+    @Override
+    public PageResult adminPageQuery(Integer page, Integer pageSize, Integer status, String studentNo) {
+        PageHelper.startPage(page, pageSize);
+        Page<ServiceReservation> p = serviceReservationMapper.adminPageQuery(status, studentNo);
         return new PageResult(p.getTotal(), p.getResult());
     }
 }

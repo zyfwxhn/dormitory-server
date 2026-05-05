@@ -109,7 +109,7 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import { getWorkerRepairPage, updateRepairStatus } from '@/api/worker'
+import { getWorkerRepairPage, getWorkerRepairDetail, updateRepairStatus } from '@/api/worker'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -182,9 +182,13 @@ const openFinish = (id) => {
 }
 
 const submitFinish = async () => {
+  if (finishImages.value.length === 0) {
+    ElMessage.warning('请至少上传一张完工照片')
+    return
+  }
   finishLoading.value = true
   try {
-    await updateRepairStatus({ id: currentFinishId.value, status: 3, finishImages: finishImagesStr.value || undefined })
+    await updateRepairStatus({ id: currentFinishId.value, status: 3, finishImages: finishImagesStr.value })
     ElMessage.success('已完工')
     finishVisible.value = false
     fetchData()
@@ -195,7 +199,14 @@ const submitFinish = async () => {
 // === 详情 ===
 const detailVisible = ref(false)
 const detailData = ref({})
-const openDetail = (row) => { detailData.value = row; detailVisible.value = true }
+const openDetail = async (row) => {
+  try {
+    detailData.value = await getWorkerRepairDetail(row.id)
+  } catch (e) {
+    detailData.value = row
+  }
+  detailVisible.value = true
+}
 
 // 定时自动刷新待接单列表
 let pollTimer = null

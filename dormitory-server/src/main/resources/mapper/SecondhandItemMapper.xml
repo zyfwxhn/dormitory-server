@@ -4,7 +4,7 @@
 <mapper namespace="com.dormitory.dormitoryserver.mapper.SecondhandItemMapper">
 
     <select id="pageQuery" resultType="com.dormitory.dormitoryserver.entity.SecondhandItem">
-        select si.*, s.name as studentName, s.student_no as studentNo
+        select si.*, s.name as studentName, s.student_no as studentNo, s.avatar as studentAvatar
         from secondhand_item si
         left join student s on si.student_id = s.id
         <where>

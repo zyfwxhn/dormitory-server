@@ -1,7 +1,7 @@
 package com.dormitory.dormitoryserver.controller.admin;
 
 import com.dormitory.dormitoryserver.dto.RepairOrderAdminPageQueryDTO;
-import com.dormitory.dormitoryserver.dto.RepairOrderUpdateStatusDTO;
+import com.dormitory.dormitoryserver.entity.RepairOrder;
 import com.dormitory.dormitoryserver.result.PageResult;
 import com.dormitory.dormitoryserver.result.Result;
 import com.dormitory.dormitoryserver.service.RepairOrderService;
@@ -36,6 +36,15 @@ public class RepairOrderAdminController {
 
         // 包装为全局统一响应格式返回给 Vue3
         return Result.success(pageResult);
+    }
+
+    /**
+     * 查询报修单详情
+     */
+    @GetMapping("/{id}")
+    public Result<RepairOrder> getDetail(@PathVariable Long id) {
+        log.info("管理员查询报修单详情：{}", id);
+        return Result.success(repairOrderService.getDetailById(id));
     }
 
     /**

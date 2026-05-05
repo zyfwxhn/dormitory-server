@@ -74,5 +74,6 @@ public class SecondhandItem {
 
     // === 关联学生信息（查询时 JOIN 填充） ===
     private String studentName;      // 卖家姓名
-    private String studentNo;        // 卖家家学号
+    private String studentNo;        // 卖家学号
+    private String studentAvatar;    // 卖家头像
 }

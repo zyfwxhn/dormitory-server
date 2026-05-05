@@ -20,8 +20,8 @@ public class LostFoundAdminController {
 
     @GetMapping("/page")
     public Result<PageResult> page(LostFoundPageQueryDTO dto) {
-        log.info("管理员查询失物招领列表");
-        return Result.success(lostFoundService.pageQuery(dto));
+        log.info("管理员查询失物招领列表: type={}, status={}, category={}", dto.getType(), dto.getStatus(), dto.getCategory());
+        return Result.success(lostFoundService.adminPageQuery(dto));
     }
 
     @PutMapping("/violate")

@@ -1,6 +1,7 @@
 package com.dormitory.dormitoryserver.mapper;
 
 import com.dormitory.dormitoryserver.entity.ServiceReservation;
+import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import java.time.LocalDate;
@@ -27,6 +28,16 @@ public interface ServiceReservationMapper {
     int autoCompleteExpiredReservations();
 
     /**
+     * 【定时任务专用】查询即将被标记完成的过期预约（用于推送通知）
+     */
+    List<ServiceReservation> getExpiredReservations();
+
+    /**
+     * 【定时任务专用】查询即将开始的预约（5-15分钟内），用于开始前提醒
+     */
+    List<ServiceReservation> getUpcomingReservations();
+
+    /**
      * 插入新的预约记录
      */
     void insert(ServiceReservation reservation);
@@ -45,7 +56,12 @@ public interface ServiceReservationMapper {
     List<ServiceReservation> getValidReservationsByDeviceAndDate(@Param("deviceId") Long deviceId, @Param("date") LocalDate date);
 
     /**
-     * 学生端分页查询自己的预约记录
+     * 学生端分页查询自己的预约记录（关联设备名）
      */
-    List<ServiceReservation> pageByStudentId(@Param("studentId") Long studentId);
+    Page<ServiceReservation> pageByStudentId(@Param("studentId") Long studentId);
+
+    /**
+     * 管理员端：分页查询所有预约记录（关联学生名和设备名）
+     */
+    Page<ServiceReservation> adminPageQuery(@Param("status") Integer status, @Param("studentNo") String studentNo);
 }

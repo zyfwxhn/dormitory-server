@@ -4,7 +4,7 @@
 <mapper namespace="com.dormitory.dormitoryserver.mapper.LostFoundMapper">
 
     <select id="pageQuery" resultType="com.dormitory.dormitoryserver.entity.LostFound">
-        select lf.*, s.name as studentName, s.student_no as studentNo
+        select lf.*, s.name as studentName, s.student_no as studentNo, s.avatar as studentAvatar
         from lost_found lf
         left join student s on lf.student_id = s.id
         <where>

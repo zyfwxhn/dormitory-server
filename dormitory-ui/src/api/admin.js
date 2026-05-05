@@ -40,6 +40,9 @@ export const toggleWorkerStatus = (id, status) => {
 export const getAdminRepairPage = (params) => {
   return request({ url: '/admin/repair/page', method: 'get', params })
 }
+export const getAdminRepairDetail = (id) => {
+  return request({ url: `/admin/repair/${id}`, method: 'get' })
+}
 export const dispatchRepair = (id) => {
   return request({ url: `/admin/repair/dispatch/${id}`, method: 'post' })
 }
@@ -84,4 +87,9 @@ export const importWorkers = (formData) => {
     data: formData,
     headers: { 'Content-Type': 'multipart/form-data' }
   })
+}
+
+// === 预约管理 ===
+export const getAdminReservationPage = (params) => {
+  return request({ url: '/admin/reservation/page', method: 'get', params })
 }

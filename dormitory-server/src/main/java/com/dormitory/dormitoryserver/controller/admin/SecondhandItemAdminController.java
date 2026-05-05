@@ -20,8 +20,8 @@ public class SecondhandItemAdminController {
 
     @GetMapping("/page")
     public Result<PageResult> page(SecondhandItemPageQueryDTO dto) {
-        log.info("管理员查询二手商品列表");
-        return Result.success(secondhandItemService.pageQuery(dto));
+        log.info("管理员查询二手商品列表: status={}, category={}", dto.getStatus(), dto.getCategory());
+        return Result.success(secondhandItemService.adminPageQuery(dto));
     }
 
     @PutMapping("/violate")

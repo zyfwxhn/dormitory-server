@@ -2,6 +2,7 @@
   <el-container class="layout-container">
     <el-aside width="220px" class="aside">
       <div class="logo">
+        <span class="logo-icon">🔧</span>
         <h2 v-if="!isCollapse">维修员工作台</h2>
         <h2 v-else>维修</h2>
       </div>
@@ -51,11 +52,7 @@
       </el-header>
 
       <el-main class="main-content">
-        <router-view v-slot="{ Component }">
-          <transition name="fade-transform" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </router-view>
+        <router-view />
       </el-main>
     </el-container>
 
@@ -89,9 +86,10 @@ const handleCommand = (command) => {
 </script>
 
 <style scoped>
-.layout-container { height: 100vh; width: 100vw; overflow: hidden; }
+.layout-container { height: 100vh; overflow: hidden; }
 .aside { background-color: #304156; transition: width 0.3s; display: flex; flex-direction: column; }
-.logo { height: 60px; line-height: 60px; text-align: center; color: #fff; overflow: hidden; background-color: #2b3643; }
+.logo { height: 60px; line-height: 60px; text-align: center; color: #fff; overflow: hidden; background-color: #2b3643; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.logo-icon { font-size: 24px; }
 .logo h2 { margin: 0; font-size: 18px; font-weight: 600; }
 .el-menu-vertical { border-right: none; flex: 1; }
 .main-container { display: flex; flex-direction: column; }
@@ -101,7 +99,4 @@ const handleCommand = (command) => {
 .greeting { font-size: 14px; color: #666; }
 .avatar-wrapper { display: flex; align-items: center; cursor: pointer; }
 .main-content { background-color: #f0f2f5; padding: 20px; box-sizing: border-box; }
-.fade-transform-leave-active, .fade-transform-enter-active { transition: all 0.3s; }
-.fade-transform-enter-from { opacity: 0; transform: translateX(-30px); }
-.fade-transform-leave-to { opacity: 0; transform: translateX(30px); }
 </style>

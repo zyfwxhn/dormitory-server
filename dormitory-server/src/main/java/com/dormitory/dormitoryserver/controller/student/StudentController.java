@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/student")
@@ -76,6 +77,17 @@ public class StudentController {
     public Result updateProfile(@RequestBody StudentProfileDTO dto) {
         log.info("学生修改个人信息：{}", dto);
         studentService.updateProfile(dto);
+        return Result.success();
+    }
+
+    /**
+     * 学生修改头像
+     */
+    @PutMapping("/avatar")
+    public Result updateAvatar(@RequestBody Map<String, String> body) {
+        String avatarUrl = body.get("avatar");
+        log.info("学生修改头像：{}", avatarUrl);
+        studentService.updateAvatar(avatarUrl);
         return Result.success();
     }
 }

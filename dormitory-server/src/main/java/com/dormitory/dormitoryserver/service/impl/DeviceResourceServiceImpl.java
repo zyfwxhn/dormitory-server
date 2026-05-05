@@ -8,6 +8,7 @@ import com.dormitory.dormitoryserver.entity.DeviceResource;
 import com.dormitory.dormitoryserver.mapper.DeviceResourceMapper;
 import com.dormitory.dormitoryserver.result.PageResult;
 import com.dormitory.dormitoryserver.service.DeviceResourceService;
+import com.dormitory.dormitoryserver.websocket.WebSocketServer;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,15 +28,28 @@ public class DeviceResourceServiceImpl implements DeviceResourceService {
     @Autowired
     private DeviceResourceMapper deviceResourceMapper;
 
+    @Autowired
+    private WebSocketServer webSocketServer;
+
+    private static final Map<String, String> CN_NUM = Map.of(
+        "一","1","二","2","三","3","四","4","五","5",
+        "六","6","七","7","八","8","九","9","十","10"
+    );
+
     @Override
     public PageResult pageQuery(DeviceResourcePageQueryDTO pageQueryDTO) {
+        // 归一化 buildingNo：去掉"号楼"后缀，中文数字转阿拉伯数字
+        String raw = pageQueryDTO.getBuildingNo();
+        if (raw != null && !raw.isEmpty()) {
+            raw = raw.replace("号楼", "");
+            for (Map.Entry<String, String> e : CN_NUM.entrySet()) {
+                raw = raw.replace(e.getKey(), e.getValue());
+            }
+            pageQueryDTO.setBuildingNo(raw);
+        }
         log.info("设备资源分页查询：{}", pageQueryDTO);
-        // 使用 PageHelper 开始分页
         PageHelper.startPage(pageQueryDTO.getPage(), pageQueryDTO.getPageSize());
-
-        // 紧跟着的第一个 select 查询会被自动拦截并分页
         Page<DeviceResource> page = deviceResourceMapper.pageQuery(pageQueryDTO);
-
         return new PageResult(page.getTotal(), page.getResult());
     }
 
@@ -79,15 +94,14 @@ public class DeviceResourceServiceImpl implements DeviceResourceService {
     @Override
     public void startOrStop(Integer status, Long id) {
         log.info("启用禁用设备：id={}, status={}", id, status);
-        // 构造实体对象
         DeviceResource deviceResource = DeviceResource.builder()
                 .id(id)
                 .status(status)
                 .updateTime(LocalDateTime.now())
                 .build();
-
-        // 复用通用的 update 方法
         deviceResourceMapper.update(deviceResource);
+        // 广播设备状态变更，通知所有在线学生刷新设备列表
+        webSocketServer.sendToAllClient("{\"type\":\"device_status_changed\"}");
     }
 
     @Override

@@ -41,4 +41,10 @@ public class ServiceReservation implements Serializable {
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;
+
+    // === 关联查询字段（非数据库字段） ===
+    private String deviceName;        // 设备名称
+    private String deviceBuildingNo;  // 设备所在楼栋
+    private String studentName;       // 学生姓名
+    private String studentNo;         // 学号
 }

@@ -183,6 +183,7 @@ public class RepairOrderServiceImpl implements RepairOrderService {
         }
 
         // 调用 Mapper 层执行动态更新
+        repairOrder.setUpdateTime(LocalDateTime.now());
         repairOrderMapper.update(repairOrder);
 
         // 【3. 新增核心逻辑】触发 WebSocket 实时推送
@@ -207,8 +208,9 @@ public class RepairOrderServiceImpl implements RepairOrderService {
             // 第一道防线：存入数据库（离线持久化）
             notificationMapper.insert(notification);
 
-            // 第二道防线：WebSocket 在线实时推送（只推内容摘要即可）
-            webSocketServer.sendToSpecificClient(order.getStudentId().toString(), messageContent);
+            // 第二道防线：WebSocket 在线实时推送
+            String wsMsg = String.format("{\"type\":\"repair_status_changed\",\"status\":%d}", targetStatus);
+            webSocketServer.sendToSpecificClient(order.getStudentId().toString(), wsMsg);
             log.info("已向学生 {} 实时推送报修进度更新", order.getStudentId());
         }
     }
@@ -245,8 +247,7 @@ public class RepairOrderServiceImpl implements RepairOrderService {
         updateEntity.setId(dto.getId());
         updateEntity.setEvaluationScore(dto.getEvaluationScore());
         updateEntity.setEvaluationContent(dto.getEvaluationContent());
-
-        // 备注：update_time 字段在数据库层面设置了 ON UPDATE CURRENT_TIMESTAMP，因此无需在这里手动 set
+        updateEntity.setUpdateTime(LocalDateTime.now());
 
         // 7. 调用 Mapper 层执行动态更新
         repairOrderMapper.update(updateEntity);
@@ -280,13 +281,26 @@ public class RepairOrderServiceImpl implements RepairOrderService {
     }
 
     @Override
+    public RepairOrder getDetailById(Long id) {
+        RepairOrder order = repairOrderMapper.getById(id);
+        if (order == null) {
+            throw new BaseException("报修单不存在");
+        }
+        return order;
+    }
+
+    @Override
     public void autoDispatch(Long orderId) {
         log.info("开始为报修单 {} 进行智能派单", orderId);
 
-        // 1. 先查出这笔报修单的详情，拿到它的"故障类型"
+        // 1. 查出这笔报修单的详情
         RepairOrder order = repairOrderMapper.getById(orderId);
         if (order == null) {
             throw new BaseException("报修单不存在");
+        }
+        // 防并发：只能派单给待处理(status=0)的订单
+        if (order.getStatus() != 0) {
+            throw new BaseException("该订单已被处理，无法重复派单！");
         }
         String repairType = order.getRepairType();
 

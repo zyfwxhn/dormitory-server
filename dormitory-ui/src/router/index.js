@@ -127,6 +127,12 @@ const routes = [
         meta: { title: '学生导入' }
       },
       {
+        path: 'reservation',
+        name: 'AdminReservation',
+        component: () => import('@/views/admin/reservation/Index.vue'),
+        meta: { title: '预约管理' }
+      },
+      {
         path: 'review',
         name: 'AdminReview',
         component: () => import('@/views/admin/content/Review.vue'),

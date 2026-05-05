@@ -25,6 +25,15 @@
             )
     </update>
 
+    <select id="getExpiredReservations" resultType="com.dormitory.dormitoryserver.entity.ServiceReservation">
+        SELECT * FROM service_reservation
+        WHERE status = 0
+          AND (
+                    reservation_date &lt; CURRENT_DATE
+                OR (reservation_date = CURRENT_DATE AND end_time &lt; CURRENT_TIME)
+            )
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO service_reservation (student_id, device_id, reservation_date, start_time, end_time, status, create_time, update_time)
         VALUES (#{studentId}, #{deviceId}, #{reservationDate}, #{startTime}, #{endTime}, #{status}, #{createTime}, #{updateTime})
@@ -50,9 +59,35 @@
     </select>
 
     <select id="pageByStudentId" resultType="com.dormitory.dormitoryserver.entity.ServiceReservation">
+        SELECT r.*, d.device_name AS deviceName, d.building_no AS deviceBuildingNo
+        FROM service_reservation r
+        LEFT JOIN device_resource d ON r.device_id = d.id
+        WHERE r.student_id = #{studentId}
+        ORDER BY r.create_time DESC
+    </select>
+
+    <select id="adminPageQuery" resultType="com.dormitory.dormitoryserver.entity.ServiceReservation">
+        SELECT r.*, d.device_name AS deviceName, d.building_no AS deviceBuildingNo,
+               s.name AS studentName, s.student_no AS studentNo
+        FROM service_reservation r
+        LEFT JOIN device_resource d ON r.device_id = d.id
+        LEFT JOIN student s ON r.student_id = s.id
+        <where>
+            <if test="status != null">
+                AND r.status = #{status}
+            </if>
+            <if test="studentNo != null and studentNo != ''">
+                AND s.student_no LIKE CONCAT('%', #{studentNo}, '%')
+            </if>
+        </where>
+        ORDER BY r.create_time DESC
+    </select>
+
+    <select id="getUpcomingReservations" resultType="com.dormitory.dormitoryserver.entity.ServiceReservation">
         SELECT * FROM service_reservation
-        WHERE student_id = #{studentId}
-        ORDER BY create_time DESC
+        WHERE status = 0
+          AND reservation_date = CURRENT_DATE
+          AND start_time BETWEEN CURTIME() AND ADDTIME(CURTIME(), '00:15:00')
     </select>
 
 </mapper>

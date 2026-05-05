@@ -30,3 +30,10 @@ export const getLostFoundDetail = (id) => {
     method: 'get'
   })
 }
+
+export const claimLostFound = (id) => {
+  return request({
+    url: `/student/lost-found/claim/${id}`,
+    method: 'post'
+  })
+}

@@ -89,6 +89,17 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    public void updateAvatar(String avatarUrl) {
+        Long currentId = BaseContext.getCurrentId();
+        Student update = new Student();
+        update.setId(currentId);
+        update.setAvatar(avatarUrl);
+        update.setUpdateTime(LocalDateTime.now());
+        studentMapper.update(update);
+        log.info("学生 {} 更新头像", currentId);
+    }
+
+    @Override
     public void updateProfile(StudentProfileDTO dto) {
         Long currentId = BaseContext.getCurrentId();
         Student update = new Student();

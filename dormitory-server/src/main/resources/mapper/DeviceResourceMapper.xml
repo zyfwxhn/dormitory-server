@@ -8,17 +8,19 @@
             <if test="buildingNo != null and buildingNo != ''">
                 and (building_no = #{buildingNo}
                      or building_no like concat(#{buildingNo}, '号楼%')
-                     or building_no regexp concat('^', #{buildingNo}, '[^0-9]')
-                     or (building_no like '一号楼%' and #{buildingNo} = '1')
-                     or (building_no like '二号楼%' and #{buildingNo} = '2')
-                     or (building_no like '三号楼%' and #{buildingNo} = '3')
-                     or (building_no like '四号楼%' and #{buildingNo} = '4')
-                     or (building_no like '五号楼%' and #{buildingNo} = '5')
-                     or (building_no like '六号楼%' and #{buildingNo} = '6')
-                     or (building_no like '七号楼%' and #{buildingNo} = '7')
-                     or (building_no like '八号楼%' and #{buildingNo} = '8')
-                     or (building_no like '九号楼%' and #{buildingNo} = '9')
-                     or (building_no like '十号楼%' and #{buildingNo} = '10'))
+                     or building_no like concat(
+                         case #{buildingNo}
+                             when '1' then '一号楼'
+                             when '2' then '二号楼'
+                             when '3' then '三号楼'
+                             when '4' then '四号楼'
+                             when '5' then '五号楼'
+                             when '6' then '六号楼'
+                             when '7' then '七号楼'
+                             when '8' then '八号楼'
+                             when '9' then '九号楼'
+                             when '10' then '十号楼'
+                         end, '%'))
             </if>
             <if test="deviceName != null and deviceName != ''">
                 and device_name like concat('%', #{deviceName}, '%')

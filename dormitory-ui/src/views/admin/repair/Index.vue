@@ -9,7 +9,7 @@
           <el-option label="已完成" :value="3" />
           <el-option label="已取消" :value="4" />
         </el-select>
-        <el-input v-model="queryParams.studentId" placeholder="学生ID" clearable style="width: 160px; margin-left: 10px;" @keyup.enter="fetchData" />
+        <el-input v-model="queryParams.studentNo" placeholder="学号" clearable style="width: 160px; margin-left: 10px;" @keyup.enter="fetchData" />
         <el-button type="primary" icon="Search" @click="fetchData" style="margin-left: 10px;">搜索</el-button>
       </div>
     </el-card>
@@ -89,12 +89,12 @@
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getAdminRepairPage, dispatchRepair } from '@/api/admin'
+import { getAdminRepairPage, getAdminRepairDetail, dispatchRepair } from '@/api/admin'
 
 const loading = ref(false)
 const tableData = ref([])
 const total = ref(0)
-const queryParams = reactive({ page: 1, pageSize: 10, status: null, studentId: null })
+const queryParams = reactive({ page: 1, pageSize: 10, status: null, studentNo: null })
 
 const fetchData = async () => {
   loading.value = true
@@ -119,7 +119,14 @@ const handleDispatch = (id) => {
 
 const detailVisible = ref(false)
 const detailData = ref({})
-const openDetail = (row) => { detailData.value = row; detailVisible.value = true }
+const openDetail = async (row) => {
+  try {
+    detailData.value = await getAdminRepairDetail(row.id)
+  } catch (e) {
+    detailData.value = row
+  }
+  detailVisible.value = true
+}
 
 // 定时自动刷新（管理员无 WebSocket 推送，轮询代替）
 let pollTimer = null

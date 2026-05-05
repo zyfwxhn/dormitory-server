@@ -35,6 +35,7 @@
             <if test="gender != null">gender = #{gender},</if>
             <if test="grade != null">grade = #{grade},</if>
             <if test="phone != null">phone = #{phone},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
         </set>
         WHERE id = #{id}

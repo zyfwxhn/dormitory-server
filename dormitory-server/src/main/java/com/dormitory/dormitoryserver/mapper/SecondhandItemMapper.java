@@ -14,8 +14,8 @@ public interface SecondhandItemMapper {
      * 插入一条二手商品记录
      * @param secondhandItem 实体对象
      */
-    @Insert("INSERT INTO secondhand_item (student_id, name, description, category, price, condition_level, images, status) " +
-            "VALUES (#{studentId}, #{name}, #{description}, #{category}, #{price}, #{conditionLevel}, #{images}, #{status})")
+    @Insert("INSERT INTO secondhand_item (student_id, name, description, category, price, condition_level, images, status, create_time, update_time) " +
+            "VALUES (#{studentId}, #{name}, #{description}, #{category}, #{price}, #{conditionLevel}, #{images}, #{status}, #{createTime}, #{updateTime})")
     void insert(SecondhandItem secondhandItem);
 
     /**
@@ -28,7 +28,7 @@ public interface SecondhandItemMapper {
     /**
      * 根据主键查询单条商品信息
      */
-    @Select("SELECT si.*, s.name AS studentName, s.student_no AS studentNo FROM secondhand_item si LEFT JOIN student s ON si.student_id = s.id WHERE si.id = #{id}")
+    @Select("SELECT si.*, s.name AS studentName, s.student_no AS studentNo, s.avatar AS studentAvatar FROM secondhand_item si LEFT JOIN student s ON si.student_id = s.id WHERE si.id = #{id}")
     SecondhandItem getById(Long id);
 
     /**

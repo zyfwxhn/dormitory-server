@@ -2,6 +2,7 @@ package com.dormitory.dormitoryserver.controller.worker;
 
 import com.dormitory.dormitoryserver.dto.RepairOrderPageQueryDTO;
 import com.dormitory.dormitoryserver.dto.RepairOrderUpdateStatusDTO;
+import com.dormitory.dormitoryserver.entity.RepairOrder;
 import com.dormitory.dormitoryserver.result.PageResult;
 import com.dormitory.dormitoryserver.result.Result;
 import com.dormitory.dormitoryserver.service.RepairOrderService;
@@ -34,6 +35,15 @@ public class RepairOrderWorkerController {
         repairOrderService.updateStatus(dto);
 
         return Result.success();
+    }
+
+    /**
+     * 查询报修单详情
+     */
+    @GetMapping("/{id}")
+    public Result<RepairOrder> getDetail(@PathVariable Long id) {
+        log.info("维修员查询报修单详情：{}", id);
+        return Result.success(repairOrderService.getDetailById(id));
     }
 
     /**

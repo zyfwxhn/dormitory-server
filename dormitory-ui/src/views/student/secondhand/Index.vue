@@ -25,59 +25,51 @@
           </el-select>
           <el-button type="primary" icon="Search" @click="fetchData" style="margin-left: 10px;">搜索</el-button>
         </div>
+        <el-button :type="myMode ? 'warning' : 'default'" @click="toggleMyMode" style="margin-right: 10px;">{{ myMode ? '我的发布' : '全部商品' }}</el-button>
         <el-button type="primary" icon="Plus" @click="openPublish">发布商品</el-button>
       </div>
     </el-card>
 
-    <!-- 表格 -->
-    <el-card shadow="never" class="table-card">
-      <el-table :data="tableData" v-loading="loading" border stripe>
-        <el-table-column type="index" label="序号" width="60" align="center" />
-        <el-table-column prop="name" label="商品名称" min-width="160" show-overflow-tooltip />
-        <el-table-column prop="category" label="分类" width="100" align="center" />
-        <el-table-column label="价格" width="110" align="center">
-          <template #default="scope">
-            <span class="price-tag">¥{{ scope.row.price }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="conditionLevel" label="成色" width="100" align="center" />
-        <el-table-column label="状态" width="100" align="center">
-          <template #default="scope">
-            <el-tag :type="itemStatusType(scope.row.status)">{{ itemStatusLabel(scope.row.status) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="createTime" label="发布时间" width="180" />
-        <el-table-column label="操作" width="180" align="center" fixed="right">
-          <template #default="scope">
-            <el-button type="primary" link @click="openDetail(scope.row)">详情</el-button>
-            <el-button
-              v-if="scope.row.status === 0"
-              type="success"
-              link
-              @click="handleMarkSold(scope.row.id)"
-            >标记售出</el-button>
-            <el-button
-              v-if="scope.row.status === 0"
-              type="danger"
-              link
-              @click="handleRemoveItem(scope.row.id)"
-            >下架</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="pagination-wrapper">
-        <el-pagination
-          v-model:current-page="queryParams.page"
-          v-model:page-size="queryParams.pageSize"
-          :page-sizes="[10, 20, 50]"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total"
-          @size-change="fetchData"
-          @current-change="fetchData"
-        />
+    <!-- 卡片网格 -->
+    <div v-loading="loading" class="card-grid">
+      <el-empty v-if="!loading && tableData.length === 0" description="暂无商品" :image-size="100" />
+      <div v-for="item in tableData" :key="item.id" class="goods-card" @click="openDetail(item)">
+        <div class="card-img">
+          <el-image v-if="firstImage(item.images)" :src="firstImage(item.images)" fit="cover" class="card-cover" />
+          <div v-else class="card-img-placeholder">
+            <el-icon :size="40"><ShoppingCart /></el-icon>
+          </div>
+          <span class="card-status-tag" :class="'status-' + item.status">{{ itemStatusLabel(item.status) }}</span>
+        </div>
+        <div class="card-body">
+          <div class="card-seller">
+            <el-avatar :size="20" :src="item.studentAvatar || defaultAvatar" />
+            <span>{{ item.studentName || '用户' }}</span>
+          </div>
+          <div class="card-name">{{ item.name }}</div>
+          <div class="card-footer">
+            <span class="card-price">¥{{ item.price }}</span>
+            <span class="card-condition">{{ item.conditionLevel }}</span>
+          </div>
+          <div class="card-actions" v-if="item.studentId === currentUserId && item.status === 0" @click.stop>
+            <el-button type="success" size="small" @click="handleMarkSold(item.id)">标记售出</el-button>
+            <el-button type="danger" size="small" @click="handleRemoveItem(item.id)">下架</el-button>
+          </div>
+        </div>
       </div>
-    </el-card>
+    </div>
+
+    <div class="pagination-wrapper">
+      <el-pagination
+        v-model:current-page="queryParams.page"
+        v-model:page-size="queryParams.pageSize"
+        :page-sizes="[12, 24, 48]"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        @size-change="fetchData"
+        @current-change="fetchData"
+      />
+    </div>
 
     <!-- 发布抽屉 -->
     <el-drawer v-model="drawerVisible" title="发布商品" size="450px">
@@ -153,7 +145,7 @@
       <div class="message-section" v-if="detailData.id">
         <div class="message-header"><span>留言区</span><span class="msg-count">共 {{ messages.length }} 条</span></div>
         <div class="message-list" v-if="messages.length > 0">
-          <div v-for="msg in messages" :key="msg.id" class="message-item">
+          <div v-for="msg in threadedMessages" :key="msg.id" class="message-item">
             <div class="msg-meta">
               <span class="msg-from">
                 {{ msg.fromStudentName || '用户' }}
@@ -162,11 +154,34 @@
               <span class="msg-time">{{ formatTime(msg.createTime) }}</span>
             </div>
             <div class="msg-body">{{ msg.content }}</div>
+            <div class="msg-reply" v-if="msg.fromStudentId !== currentUserId">
+              <el-button type="primary" link size="small" @click="replyTo(msg)">回复</el-button>
+            </div>
+            <!-- 该消息的所有回复，嵌套在下方 -->
+            <div v-if="msg._replies" class="reply-thread">
+              <div v-for="sub in msg._replies" :key="sub.id" class="sub-message">
+                <div class="msg-meta">
+                  <span class="msg-from">
+                    {{ sub.fromStudentName || '用户' }}
+                    <el-tag v-if="sub.fromSeller" type="warning" size="small" effect="dark" style="margin-left: 4px;">卖家</el-tag>
+                  </span>
+                  <span class="msg-time">{{ formatTime(sub.createTime) }}</span>
+                </div>
+                <div class="msg-body">{{ sub.content.replace(/^回复 @.+?：/, '') }}</div>
+                <div class="msg-reply" v-if="sub.fromStudentId !== currentUserId">
+                  <el-button type="primary" link size="small" @click="replyTo(msg)">回复</el-button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <el-empty v-else description="暂无留言" :image-size="40" />
         <div class="message-input" v-if="detailData.status === 0">
-          <el-input v-model="newMessage" placeholder="给卖家留言..." maxlength="512" show-word-limit @keyup.enter="sendMessage">
+          <div class="reply-hint" v-if="replyTarget">
+            正在回复 <strong>@{{ replyTarget.fromStudentName }}</strong>
+            <el-button type="danger" link size="small" @click="replyTarget = null">取消回复</el-button>
+          </div>
+          <el-input v-model="newMessage" :placeholder="replyTarget ? '输入回复...' : '给卖家留言...'" maxlength="512" show-word-limit @keyup.enter="sendMessage">
             <template #append>
               <el-button :loading="msgSending" @click="sendMessage">发送</el-button>
             </template>
@@ -180,18 +195,21 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Search } from '@element-plus/icons-vue'
-import { getSecondhandPage, publishSecondhand, updateSecondhandStatus, getItemMessages, sendItemMessage } from '@/api/secondhand'
+import { Plus, Search, ShoppingCart } from '@element-plus/icons-vue'
+import { getSecondhandPage, publishSecondhand, updateSecondhandStatus, getSecondhandDetail, getItemMessages, sendItemMessage } from '@/api/secondhand'
+import request from '@/utils/request'
 import { formatTime } from '@/utils/date'
 
 // === 列表 ===
 const loading = ref(false)
 const tableData = ref([])
 const total = ref(0)
+const myMode = ref(false)
+const currentUserId = ref(null)
 const queryParams = reactive({
-  page: 1, pageSize: 10, category: null, name: null,
+  page: 1, pageSize: 12, category: null, name: null,
   minPrice: null, maxPrice: null, sortMode: null
 })
 
@@ -202,6 +220,9 @@ const fetchData = async () => {
     Object.keys(queryParams).forEach(k => {
       if (queryParams[k] !== null && queryParams[k] !== '' && queryParams[k] !== undefined) params[k] = queryParams[k]
     })
+    if (myMode.value && currentUserId.value) {
+      params.studentId = currentUserId.value
+    }
     const res = await getSecondhandPage(params)
     tableData.value = res.records || []
     total.value = res.total || 0
@@ -209,8 +230,16 @@ const fetchData = async () => {
   finally { loading.value = false }
 }
 
+const toggleMyMode = () => {
+  myMode.value = !myMode.value
+  queryParams.page = 1
+  fetchData()
+}
+
 const itemStatusLabel = (s) => ({ 0: '在售', 1: '已售出', 2: '已下架' }[s] || '未知')
 const itemStatusType = (s) => ({ 0: 'success', 1: 'info', 2: 'danger' }[s] || 'info')
+const firstImage = (images) => images ? images.split(',')[0] : ''
+const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
 
 // === 发布 ===
 const drawerVisible = ref(false)
@@ -269,11 +298,47 @@ const detailData = ref({})
 const messages = ref([])
 const newMessage = ref('')
 const msgSending = ref(false)
+const replyTarget = ref(null)
+
+// 构建楼层结构：将"回复 @"消息嵌套到原消息下方
+const threadedMessages = computed(() => {
+  const tops = []
+  for (const msg of messages.value) {
+    if (msg.content.startsWith('回复 @')) {
+      const m = msg.content.match(/^回复 @(.+?)：/)
+      if (m) {
+        let found = false
+        for (let i = tops.length - 1; i >= 0; i--) {
+          if (tops[i].fromStudentName === m[1]) {
+            if (!tops[i]._replies) tops[i]._replies = []
+            tops[i]._replies.push(msg)
+            found = true
+            break
+          }
+        }
+        if (!found) tops.push(msg) // 找不到原消息就当顶层显示
+        continue
+      }
+    }
+    tops.push(msg)
+  }
+  return tops
+})
+
+const replyTo = (msg) => {
+  replyTarget.value = msg
+  newMessage.value = ''
+}
 
 const openDetail = async (row) => {
-  detailData.value = row
   detailVisible.value = true
   newMessage.value = ''
+  replyTarget.value = null
+  try {
+    detailData.value = await getSecondhandDetail(row.id)
+  } catch (e) {
+    detailData.value = row
+  }
   try { messages.value = await getItemMessages(row.id) || [] }
   catch (e) { messages.value = [] }
 }
@@ -281,14 +346,31 @@ const openDetail = async (row) => {
 const sendMessage = async () => {
   if (!newMessage.value.trim()) return
   msgSending.value = true
+
+  // 确定接收方：回复模式→被回复者；买家→卖家；卖家→最近留言的买家
+  let toStudentId
+  if (replyTarget.value) {
+    toStudentId = replyTarget.value.fromStudentId
+  } else if (currentUserId.value === detailData.value.studentId) {
+    const lastBuyerMsg = [...messages.value].reverse().find(m => m.fromStudentId !== currentUserId.value)
+    toStudentId = lastBuyerMsg ? lastBuyerMsg.fromStudentId : detailData.value.studentId
+  } else {
+    toStudentId = detailData.value.studentId
+  }
+
+  const content = replyTarget.value
+    ? `回复 @${replyTarget.value.fromStudentName}：${newMessage.value}`
+    : newMessage.value
+
   try {
     await sendItemMessage({
       itemId: detailData.value.id,
-      toStudentId: detailData.value.studentId,
-      content: newMessage.value
+      toStudentId,
+      content
     })
     ElMessage.success('留言发送成功')
     newMessage.value = ''
+    replyTarget.value = null
     messages.value = await getItemMessages(detailData.value.id) || []
   } catch (e) { console.error(e) }
   finally { msgSending.value = false }
@@ -310,16 +392,87 @@ const handleRemoveItem = (id) => {
   }).catch(() => {})
 }
 
-onMounted(() => fetchData())
+// WebSocket 实时刷新留言
+const handleWsMessage = (e) => {
+  try {
+    const msg = JSON.parse(e.detail)
+    if (msg.type === 'new_message' && detailVisible.value && detailData.value.id === msg.itemId) {
+      getItemMessages(detailData.value.id).then(list => { messages.value = list || [] })
+    }
+  } catch {}
+}
+
+onMounted(async () => {
+  try {
+    const info = await request({ url: '/student/info', method: 'get' })
+    currentUserId.value = info.id || null
+  } catch (e) { /* ignore */ }
+  fetchData()
+  window.addEventListener('ws-message', handleWsMessage)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('ws-message', handleWsMessage)
+})
 </script>
 
 <style scoped>
 .filter-card { margin-bottom: 20px; }
 .filter-wrapper { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
 .filter-left { display: flex; align-items: center; flex-wrap: wrap; }
-.table-card { }
 .pagination-wrapper { margin-top: 20px; display: flex; justify-content: flex-end; }
 .price-tag { color: #f56c6c; font-weight: 600; }
+
+/* 卡片网格 */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+@media (max-width: 1400px) { .card-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 1000px) { .card-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.goods-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.goods-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+
+.card-img {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  background: #f5f7fa;
+}
+.card-cover { width: 100%; height: 100%; }
+.card-img-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: #c0c4cc;
+}
+.card-status-tag {
+  position: absolute; top: 8px; right: 8px;
+  padding: 2px 10px; border-radius: 10px;
+  font-size: 12px; color: #fff; font-weight: 500;
+}
+.status-0 { background: #67c23a; }
+.status-1 { background: #909399; }
+.status-2 { background: #f56c6c; }
+
+.card-body { padding: 12px; }
+.card-seller { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #909399; margin-bottom: 8px; }
+.card-name { font-size: 14px; font-weight: 500; color: #303133; margin-bottom: 10px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-footer { display: flex; justify-content: space-between; align-items: center; }
+.card-price { font-size: 18px; font-weight: 700; color: #f56c6c; }
+.card-condition { font-size: 12px; color: #909399; }
+.card-actions { margin-top: 10px; display: flex; gap: 8px; }
+
+/* 详情弹窗 + 留言区 */
 .detail-images { display: flex; flex-wrap: wrap; }
 .message-section { margin-top: 20px; border-top: 1px solid #ebeef5; padding-top: 16px; }
 .message-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 12px; }
@@ -330,4 +483,9 @@ onMounted(() => fetchData())
 .msg-meta { display: flex; justify-content: space-between; font-size: 12px; color: #909399; margin-bottom: 4px; }
 .msg-from { font-weight: 600; color: #606266; }
 .msg-body { font-size: 14px; color: #303133; line-height: 1.6; }
+.msg-reply { margin-top: 4px; }
+.reply-hint { margin-bottom: 8px; padding: 6px 12px; background: #ecf5ff; border-radius: 6px; font-size: 13px; color: #409eff; display: flex; align-items: center; gap: 12px; }
+.reply-thread { margin-left: 28px; border-left: 2px solid #e8e8e8; padding-left: 12px; margin-top: 4px; }
+.sub-message { padding: 6px 0; border-bottom: 1px dashed #f0f0f0; }
+.sub-message:last-child { border-bottom: none; }
 </style>

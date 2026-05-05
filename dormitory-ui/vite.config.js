@@ -12,7 +12,7 @@ export default defineConfig({
   // 顺便配置一下开发服务器的跨域代理，把前端请求转发给后端
   server: {
     port: 5173,
-    open: true,
+    open: false,
     proxy: {
       '/api': {
         target: 'http://localhost:8080', // 你的后端服务地址

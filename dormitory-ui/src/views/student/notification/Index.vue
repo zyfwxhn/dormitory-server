@@ -24,7 +24,7 @@
           </template>
         </el-table-column>
         <el-table-column label="时间" width="180">
-          <template #default="scope">{{ formatTime(scope.row.createTime) }}</template>
+          <template #default="scope">{{ formatRelativeTime(scope.row.createTime) }}</template>
         </el-table-column>
         <el-table-column label="操作" width="80" align="center" fixed="right">
           <template #default="scope">
@@ -59,9 +59,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getMyNotifications, markAsRead } from '@/api/notification'
+import { formatRelativeTime } from '@/utils/date'
 
 const loading = ref(false)
 const tableData = ref([])
+const allNotifications = ref([])
 const page = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
@@ -69,10 +71,10 @@ const total = ref(0)
 const fetchData = async () => {
   loading.value = true
   try {
-    const list = await getMyNotifications() || []
-    total.value = list.length
+    allNotifications.value = await getMyNotifications() || []
+    total.value = allNotifications.value.length
     const start = (page.value - 1) * pageSize.value
-    tableData.value = list.slice(start, start + pageSize.value)
+    tableData.value = allNotifications.value.slice(start, start + pageSize.value)
   } catch (e) {
     console.error('获取通知失败', e)
   } finally {
@@ -80,41 +82,31 @@ const fetchData = async () => {
   }
 }
 
-const unreadCount = computed(() => tableData.value.filter(n => n.isRead === 0).length)
+const unreadCount = computed(() => allNotifications.value.filter(n => n.isRead === 0).length)
 
-const typeLabel = (type) => ({ 1: '报修通知', 2: '二手留言', 3: '预约提醒' }[type] || '系统通知')
-const typeTag = (type) => ({ 1: 'primary', 2: 'success', 3: 'warning' }[type] || 'info')
+const typeLabel = (type) => ({ 1: '报修通知', 2: '二手留言', 3: '预约提醒', 4: '失物招领' }[type] || '系统通知')
+const typeTag = (type) => ({ 1: 'primary', 2: 'success', 3: 'warning', 4: 'primary' }[type] || 'info')
+
+const notifyLayout = () => window.dispatchEvent(new CustomEvent('notification-read'))
 
 const handleMarkRead = async (id) => {
   try {
     await markAsRead(id)
     ElMessage.success('已标记为已读')
     fetchData()
+    notifyLayout()
   } catch (e) { console.error(e) }
 }
 
 const markAllRead = async () => {
-  const unread = tableData.value.filter(n => n.isRead === 0)
+  const unread = allNotifications.value.filter(n => n.isRead === 0)
   if (unread.length === 0) return
   try {
     await Promise.all(unread.map(n => markAsRead(n.id)))
     ElMessage.success('已全部标为已读')
     fetchData()
+    notifyLayout()
   } catch (e) { console.error(e) }
-}
-
-const formatTime = (timeStr) => {
-  if (!timeStr) return ''
-  const m = String(timeStr).match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/)
-  if (!m) return String(timeStr)
-  const d = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5])
-  const now = new Date()
-  const diff = now - d
-  if (diff < 60000) return '刚刚'
-  if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前'
-  if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前'
-  if (d.getFullYear() === now.getFullYear()) return `${m[2]}-${m[3]} ${m[4]}:${m[5]}`
-  return `${m[1]}-${m[2]}-${m[3]}`
 }
 
 onMounted(() => fetchData())

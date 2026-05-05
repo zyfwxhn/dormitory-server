@@ -15,6 +15,13 @@ export const getWorkerRepairPage = (params) => {
   })
 }
 
+export const getWorkerRepairDetail = (id) => {
+  return request({
+    url: `/worker/repair/${id}`,
+    method: 'get'
+  })
+}
+
 // params: { id, status, finishImages? }
 export const updateRepairStatus = (data) => {
   return request({

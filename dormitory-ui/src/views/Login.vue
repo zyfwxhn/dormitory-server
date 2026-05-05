@@ -1,65 +1,58 @@
 <template>
   <div class="login-container">
-    <el-card class="login-box" shadow="hover">
+    <!-- 装饰背景 -->
+    <div class="bg-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+      <div class="shape shape-4"></div>
+    </div>
+
+    <div class="login-card">
       <div class="login-header">
+        <div class="logo-icon">🏠</div>
         <h2 class="title">宿舍报修与生活服务系统</h2>
-        <p class="subtitle">一体化数字校园平台</p>
+        <p class="subtitle">Dormitory Repair &amp; Life Service Platform</p>
       </div>
 
-      <!-- 角色切换 Tab -->
-      <el-tabs v-model="activeRole" class="role-tabs" stretch @tab-change="handleTabChange">
-        <el-tab-pane label="学生端" name="student"></el-tab-pane>
-        <el-tab-pane label="维修员端" name="worker"></el-tab-pane>
-        <el-tab-pane label="管理端" name="admin"></el-tab-pane>
-      </el-tabs>
+      <!-- 角色切换 -->
+      <div class="role-switch">
+        <button
+          v-for="r in roles" :key="r.key"
+          :class="['role-btn', { active: activeRole === r.key }]"
+          @click="switchRole(r.key)"
+        >{{ r.label }}</button>
+      </div>
 
       <!-- 登录表单 -->
-      <el-form 
-        ref="loginFormRef" 
-        :model="loginForm" 
-        :rules="loginRules" 
-        size="large"
-      >
+      <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" size="large">
         <el-form-item prop="account">
-          <el-input 
-            v-model="loginForm.account" 
-            :placeholder="accountPlaceholder" 
-            clearable
+          <el-input
+            v-model="loginForm.account"
+            :placeholder="accountPlaceholder"
+            :prefix-icon="User"
             @keyup.enter="handleLogin"
-          >
-            <!-- 引入 Element Plus 的内置图标 -->
-            <template #prefix>
-              <el-icon><User /></el-icon>
-            </template>
-          </el-input>
+          />
         </el-form-item>
 
         <el-form-item prop="password">
-          <el-input 
-            v-model="loginForm.password" 
-            type="password" 
-            placeholder="请输入密码" 
-            show-password 
+          <el-input
+            v-model="loginForm.password"
+            type="password"
+            placeholder="请输入密码"
+            show-password
+            :prefix-icon="Lock"
             @keyup.enter="handleLogin"
-          >
-            <template #prefix>
-              <el-icon><Lock /></el-icon>
-            </template>
-          </el-input>
+          />
         </el-form-item>
 
         <el-form-item>
-          <el-button 
-            type="primary" 
-            class="login-btn" 
-            :loading="loading" 
-            @click="handleLogin"
-          >
+          <el-button type="primary" class="login-btn" :loading="loading" @click="handleLogin" round>
             登 录
           </el-button>
         </el-form-item>
       </el-form>
-    </el-card>
+    </div>
   </div>
 </template>
 
@@ -72,83 +65,56 @@ import { studentLogin, workerLogin, adminLogin } from '@/api/login'
 
 const router = useRouter()
 const loginFormRef = ref(null)
-
-// 响应式数据
 const activeRole = ref('student')
 const loading = ref(false)
-const loginForm = ref({
-  account: '',
-  password: ''
-})
+const loginForm = ref({ account: '', password: '' })
 
-// 动态计算占位符
-const accountPlaceholder = computed(() => {
-  return activeRole.value === 'student' ? '请输入学号' : '请输入账号'
-})
+const roles = [
+  { key: 'student', label: '🎓 学生端' },
+  { key: 'worker', label: '🔧 维修员端' },
+  { key: 'admin', label: '⚙️ 管理端' }
+]
 
-// 表单校验规则
+const accountPlaceholder = computed(() =>
+  activeRole.value === 'student' ? '请输入学号' : '请输入账号'
+)
+
 const loginRules = {
-  account: [
-    { required: true, message: '账号/学号不能为空', trigger: 'blur' }
-  ],
+  account: [{ required: true, message: '账号/学号不能为空', trigger: 'blur' }],
   password: [
     { required: true, message: '密码不能为空', trigger: 'blur' },
     { min: 6, message: '密码长度不能小于6位', trigger: 'blur' }
   ]
 }
 
-// 切换角色时清空表单和校验记录
-const handleTabChange = () => {
+const switchRole = (key) => {
+  activeRole.value = key
   loginFormRef.value?.resetFields()
 }
 
-// 登录提交逻辑
 const handleLogin = () => {
   loginFormRef.value?.validate(async (valid) => {
     if (!valid) return
-    
     loading.value = true
     try {
-      let res = null
-      
-      // 数据适配：根据不同角色构造不同的请求参数体
+      let res
       if (activeRole.value === 'student') {
-        res = await studentLogin({ 
-          studentNo: loginForm.value.account, 
-          password: loginForm.value.password 
-        })
+        res = await studentLogin({ studentNo: loginForm.value.account, password: loginForm.value.password })
       } else if (activeRole.value === 'worker') {
-        res = await workerLogin({ 
-          username: loginForm.value.account, 
-          password: loginForm.value.password 
-        })
-      } else if (activeRole.value === 'admin') {
-        res = await adminLogin({ 
-          username: loginForm.value.account, 
-          password: loginForm.value.password 
-        })
+        res = await workerLogin({ username: loginForm.value.account, password: loginForm.value.password })
+      } else {
+        res = await adminLogin({ username: loginForm.value.account, password: loginForm.value.password })
       }
 
-      // 登录成功处理
-      ElMessage.success('登录成功')
-
-      // 三端 token 分 key 存储，互不覆盖，允许同一设备同时登录三端
+      ElMessage.success({ message: '登录成功，欢迎回来！', duration: 1500 })
       const role = activeRole.value
       localStorage.setItem(`${role}_token`, res.token)
       localStorage.setItem(`${role}_userInfo`, JSON.stringify({ id: res.id, name: res.name, role }))
 
-      // 路由跳转分流
-      if (activeRole.value === 'student') {
-        router.push('/student')
-      } else if (activeRole.value === 'worker') {
-        router.push('/worker')
-      } else if (activeRole.value === 'admin') {
-        router.push('/admin')
-      }
-
+      const routes = { student: '/student', worker: '/worker', admin: '/admin' }
+      setTimeout(() => router.push(routes[role]), 200)
     } catch (error) {
       console.error('登录失败:', error)
-      // 错误提示由我们之前封装的 request.js 拦截器统一处理了，这里只需捕获异常防止崩溃
     } finally {
       loading.value = false
     }
@@ -162,41 +128,85 @@ const handleLogin = () => {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  /* 建议后续在 assets 目录下放一张校园背景图替换此处的渐变色 */
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, #0f2027 0%, #203a43 40%, #2c5364 100%);
+  overflow: hidden;
+  position: relative;
 }
 
-.login-box {
+/* 装饰形状 */
+.bg-shapes { position: absolute; inset: 0; pointer-events: none; }
+.shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.08;
+  background: #fff;
+}
+.shape-1 { width: 400px; height: 400px; top: -100px; right: -80px; }
+.shape-2 { width: 300px; height: 300px; bottom: -60px; left: -60px; }
+.shape-3 { width: 200px; height: 200px; top: 50%; left: 10%; transform: translateY(-50%); }
+.shape-4 { width: 160px; height: 160px; top: 20%; right: 15%; }
+
+/* 毛玻璃卡片 */
+.login-card {
   width: 420px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  padding: 40px 36px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
 }
 
-.login-header {
-  text-align: center;
-  margin-bottom: 25px;
-}
+.login-header { text-align: center; margin-bottom: 28px; }
+.logo-icon { font-size: 44px; margin-bottom: 8px; }
+.title { margin: 0 0 6px; font-size: 22px; color: #fff; font-weight: 600; letter-spacing: 1px; }
+.subtitle { margin: 0; font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 2px; text-transform: uppercase; }
 
-.title {
-  margin: 0;
-  font-size: 24px;
-  color: #333;
+/* 角色切换按钮组 */
+.role-switch { display: flex; gap: 6px; margin-bottom: 24px; }
+.role-btn {
+  flex: 1;
+  padding: 10px 0;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s;
 }
-
-.subtitle {
-  margin: 10px 0 0;
-  font-size: 14px;
-  color: #909399;
-}
-
-.role-tabs {
-  margin-bottom: 20px;
+.role-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+.role-btn.active {
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.5);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
 }
 
 .login-btn {
   width: 100%;
-  margin-top: 10px;
+  margin-top: 8px;
   font-size: 16px;
-  letter-spacing: 2px;
+  letter-spacing: 4px;
+  height: 46px;
 }
+
+:deep(.el-input__wrapper) {
+  background: rgba(255,255,255,0.1) !important;
+  border: 1px solid rgba(255,255,255,0.2) !important;
+  box-shadow: none !important;
+  border-radius: 10px !important;
+}
+:deep(.el-input__inner) {
+  color: #fff !important;
+}
+:deep(.el-input__inner::placeholder) {
+  color: rgba(255,255,255,0.4) !important;
+}
+:deep(.el-input__prefix) { color: rgba(255,255,255,0.5) !important; }
+:deep(.el-form-item__error) { color: rgba(255,150,150,0.9) !important; }
 </style>

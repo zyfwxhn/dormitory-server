@@ -39,8 +39,8 @@
             <if test="status != null">
                 AND status = #{status}
             </if>
-            <if test="studentId != null">
-                AND student_id = #{studentId}
+            <if test="studentNo != null and studentNo != ''">
+                AND s.student_no LIKE CONCAT('%', #{studentNo}, '%')
             </if>
         </where>
         ORDER BY create_time DESC

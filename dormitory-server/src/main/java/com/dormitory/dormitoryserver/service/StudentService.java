@@ -18,4 +18,9 @@ public interface StudentService {
      * 学生修改个人信息
      */
     void updateProfile(com.dormitory.dormitoryserver.dto.StudentProfileDTO dto);
+
+    /**
+     * 学生修改头像
+     */
+    void updateAvatar(String avatarUrl);
 }

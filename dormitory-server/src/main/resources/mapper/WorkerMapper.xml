@@ -29,7 +29,8 @@
         FROM worker w
                  LEFT JOIN repair_order ro ON w.id = ro.worker_id AND ro.status IN (1, 2)
         WHERE w.is_available = 1
-          AND w.skills LIKE CONCAT('%', #{repairType}, '%')
+          AND (w.skills LIKE CONCAT('%', #{repairType}, '%')
+               OR #{repairType} REGEXP REPLACE(w.skills, ',', '|'))
         GROUP BY w.id
         ORDER BY COUNT(ro.id) ASC
         LIMIT 1

@@ -3,6 +3,7 @@
     <!-- 左侧侧边栏 -->
     <el-aside width="220px" class="aside">
       <div class="logo">
+        <span class="logo-icon">🎓</span>
         <h2 v-if="!isCollapse">学生服务中心</h2>
         <h2 v-else>学生</h2>
       </div>
@@ -59,7 +60,7 @@
         <div class="header-right">
           <el-dropdown @command="handleCommand">
             <span class="el-dropdown-link avatar-wrapper">
-              <el-avatar :size="36" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" />
+              <el-avatar :size="36" :src="userAvatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'" />
               <el-icon class="el-icon--right"><CaretBottom /></el-icon>
             </span>
             <template #dropdown>
@@ -93,6 +94,7 @@ import {
   Fold, Expand, CaretBottom
 } from '@element-plus/icons-vue'
 import { getMyNotifications } from '@/api/notification'
+import { getStudentInfo } from '@/api/student'
 import { connectWebSocket, disconnectWebSocket } from '@/utils/websocket'
 
 const router = useRouter()
@@ -104,6 +106,7 @@ const currentPath = computed(() => route.path)
 
 const userInfo = JSON.parse(localStorage.getItem('student_userInfo') || '{}')
 const userName = ref(userInfo.name || '未知')
+const userAvatar = ref('')
 const unreadCount = ref(0)
 
 const fetchUnreadCount = async () => {
@@ -122,17 +125,23 @@ const onWsMessage = (e) => {
   window.dispatchEvent(new CustomEvent('repair-status-changed'))
 }
 
-onMounted(() => {
+onMounted(async () => {
   fetchUnreadCount()
+  try {
+    const info = await getStudentInfo()
+    if (info?.avatar) userAvatar.value = info.avatar
+  } catch (e) { /* ignore */ }
   const sid = userInfo.id
   if (sid) {
     connectWebSocket(sid)
   }
   window.addEventListener('ws-message', onWsMessage)
+  window.addEventListener('notification-read', fetchUnreadCount)
 })
 
 onUnmounted(() => {
   window.removeEventListener('ws-message', onWsMessage)
+  window.removeEventListener('notification-read', fetchUnreadCount)
 })
 
 const handleCommand = (command) => {
@@ -167,9 +176,11 @@ const handleCommand = (command) => {
   line-height: 60px;
   text-align: center;
   color: #fff;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
   overflow: hidden;
   background-color: #2b3643;
 }
+.logo-icon { font-size: 24px; }
 .logo h2 {
   margin: 0;
   font-size: 18px;

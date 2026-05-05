@@ -7,7 +7,18 @@
 
     <!-- 失物招领 -->
     <el-card v-if="activeTab === 'lostfound'" shadow="never" class="table-card">
-      <el-table :data="lfTableData" v-loading="lfLoading" border stripe>
+      <div class="filter-bar">
+        <el-select v-model="lfParams.type" placeholder="类型" clearable @change="fetchLostFound" style="width: 120px;">
+          <el-option label="寻物启事" :value="0" />
+          <el-option label="失物招领" :value="1" />
+        </el-select>
+        <el-select v-model="lfParams.status" placeholder="状态" clearable @change="fetchLostFound" style="width: 120px; margin-left: 10px;">
+          <el-option label="寻找中/待认领" :value="0" />
+          <el-option label="已解决" :value="1" />
+          <el-option label="已撤销" :value="2" />
+        </el-select>
+      </div>
+      <el-table :data="lfTableData" v-loading="lfLoading" border stripe style="margin-top: 12px;">
         <el-table-column type="index" label="序号" width="60" align="center" />
         <el-table-column label="类型" width="100" align="center">
           <template #default="scope">
@@ -50,7 +61,22 @@
 
     <!-- 二手交易 -->
     <el-card v-if="activeTab === 'secondhand'" shadow="never" class="table-card">
-      <el-table :data="shTableData" v-loading="shLoading" border stripe>
+      <div class="filter-bar">
+        <el-select v-model="shParams.status" placeholder="状态" clearable @change="fetchSecondhand" style="width: 120px;">
+          <el-option label="在售" :value="0" />
+          <el-option label="已售出" :value="1" />
+          <el-option label="已下架" :value="2" />
+        </el-select>
+        <el-select v-model="shParams.category" placeholder="分类" clearable @change="fetchSecondhand" style="width: 130px; margin-left: 10px;">
+          <el-option label="电子数码" value="电子数码" />
+          <el-option label="生活用品" value="生活用品" />
+          <el-option label="代步工具" value="代步工具" />
+          <el-option label="书籍资料" value="书籍资料" />
+          <el-option label="服饰鞋包" value="服饰鞋包" />
+          <el-option label="其他" value="其他" />
+        </el-select>
+      </div>
+      <el-table :data="shTableData" v-loading="shLoading" border stripe style="margin-top: 12px;">
         <el-table-column type="index" label="序号" width="60" align="center" />
         <el-table-column prop="name" label="商品名称" min-width="160" show-overflow-tooltip />
         <el-table-column prop="category" label="分类" width="100" />
@@ -121,12 +147,15 @@ const activeTab = ref('lostfound')
 const lfLoading = ref(false)
 const lfTableData = ref([])
 const lfTotal = ref(0)
-const lfParams = reactive({ page: 1, pageSize: 10 })
+const lfParams = reactive({ page: 1, pageSize: 10, type: null, status: null })
 
 const fetchLostFound = async () => {
   lfLoading.value = true
   try {
-    const res = await getAdminLostFoundPage({ page: lfParams.page, pageSize: lfParams.pageSize })
+    const params = { page: lfParams.page, pageSize: lfParams.pageSize }
+    if (lfParams.type !== null && lfParams.type !== '') params.type = lfParams.type
+    if (lfParams.status !== null && lfParams.status !== '') params.status = lfParams.status
+    const res = await getAdminLostFoundPage(params)
     lfTableData.value = res.records || []
     lfTotal.value = res.total || 0
   } catch (e) { console.error(e) } finally { lfLoading.value = false }
@@ -148,12 +177,15 @@ const handleViolateLf = (id) => {
 const shLoading = ref(false)
 const shTableData = ref([])
 const shTotal = ref(0)
-const shParams = reactive({ page: 1, pageSize: 10 })
+const shParams = reactive({ page: 1, pageSize: 10, status: null, category: null })
 
 const fetchSecondhand = async () => {
   shLoading.value = true
   try {
-    const res = await getAdminSecondhandPage({ page: shParams.page, pageSize: shParams.pageSize })
+    const params = { page: shParams.page, pageSize: shParams.pageSize }
+    if (shParams.status !== null && shParams.status !== '') params.status = shParams.status
+    if (shParams.category !== null && shParams.category !== '') params.category = shParams.category
+    const res = await getAdminSecondhandPage(params)
     shTableData.value = res.records || []
     shTotal.value = res.total || 0
   } catch (e) { console.error(e) } finally { shLoading.value = false }
@@ -181,6 +213,7 @@ onMounted(() => fetchLostFound())
 
 <style scoped>
 .app-container { }
+.filter-bar { display: flex; align-items: center; margin-bottom: 4px; }
 .table-card { }
 .pagination-wrapper { margin-top: 20px; display: flex; justify-content: flex-end; }
 </style>

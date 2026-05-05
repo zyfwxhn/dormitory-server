@@ -5,7 +5,21 @@
       <el-col :span="8">
         <el-card shadow="hover" class="info-card">
           <div class="avatar-section">
-            <el-avatar :size="100" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" />
+            <el-upload
+              class="avatar-uploader"
+              :action="uploadUrl"
+              :headers="uploadHeaders"
+              :show-file-list="false"
+              :on-success="handleAvatarSuccess"
+              :before-upload="beforeAvatarUpload"
+              accept=".jpg,.jpeg,.png,.gif,.webp"
+            >
+              <el-avatar :size="100" :src="info.avatar || defaultAvatar" class="avatar-img" />
+              <div class="avatar-mask">
+                <el-icon><Camera /></el-icon>
+                <span>更换头像</span>
+              </div>
+            </el-upload>
             <h2>{{ info.name || '同学' }}</h2>
             <p class="student-no">学号：{{ info.studentNo }}</p>
           </div>
@@ -14,7 +28,7 @@
             <div class="info-row"><span class="label">性别</span><span>{{ info.gender === '1' ? '男' : info.gender === '0' ? '女' : '--' }}</span></div>
             <div class="info-row"><span class="label">年级</span><span>{{ info.grade || '--' }}</span></div>
             <div class="info-row"><span class="label">手机号</span><span>{{ info.phone || '--' }}</span></div>
-            <div class="info-row"><span class="label">宿舍</span><span>{{ info.buildingNo || '--' }}号楼 {{ info.roomNo || '--' }}室</span></div>
+            <div class="info-row"><span class="label">宿舍</span><span>{{ info.buildingNo || '--' }} {{ info.roomNo || '--' }}</span></div>
           </div>
         </el-card>
 
@@ -175,15 +189,36 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import request from '@/utils/request'
+import { getStudentInfo, updateStudentProfile, changeStudentPassword, updateAvatar } from '@/api/student'
+import { Camera } from '@element-plus/icons-vue'
 import { getMyRepairPage } from '@/api/repair'
 import { getMyReservations } from '@/api/reservation'
 import { getLostFoundPage } from '@/api/lostfound'
 import { getSecondhandPage } from '@/api/secondhand'
 
 const info = ref({})
+const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
+const uploadUrl = import.meta.env.VITE_APP_BASE_API + '/common/upload'
+const uploadHeaders = { token: localStorage.getItem('student_token') || '' }
+
+const handleAvatarSuccess = async (resp) => {
+  // el-upload 不走 axios 拦截器，resp 是完整的 {code, msg, data}
+  const url = resp?.data
+  if (!url) { ElMessage.error('上传失败'); return }
+  await updateAvatar(url)
+  info.value.avatar = url
+  ElMessage.success('头像更新成功')
+}
+const beforeAvatarUpload = (file) => {
+  const isImage = file.type.startsWith('image/')
+  const isLt2M = file.size / 1024 / 1024 < 2
+  if (!isImage) { ElMessage.error('只能上传图片文件'); return false }
+  if (!isLt2M) { ElMessage.error('图片大小不能超过 2MB'); return false }
+  return true
+}
+
 const loadInfo = async () => {
-  try { info.value = await request({ url: '/student/info', method: 'get' }) || {} }
+  try { info.value = await getStudentInfo() || {} }
   catch (e) { console.error(e) }
 }
 
@@ -208,7 +243,7 @@ const editForm = reactive({ name: '', gender: '', grade: '', phone: '' })
 const saveProfile = async () => {
   profileSaving.value = true
   try {
-    await request({ url: '/student/profile', method: 'put', data: { ...editForm } })
+    await updateStudentProfile({ ...editForm })
     ElMessage.success('个人信息已更新')
     // 刷新显示
     info.value = { ...info.value, ...editForm }
@@ -232,7 +267,7 @@ const changePassword = () => {
     if (!valid) return
     pwdSaving.value = true
     try {
-      await request({ url: '/student/password', method: 'put', data: { oldPassword: pwdForm.oldPassword, newPassword: pwdForm.newPassword } })
+      await changeStudentPassword({ oldPassword: pwdForm.oldPassword, newPassword: pwdForm.newPassword })
       ElMessage.success('密码修改成功，请重新登录')
       localStorage.removeItem('student_token'); localStorage.removeItem('student_userInfo')
       setTimeout(() => window.location.href = '/login', 500)
@@ -321,6 +356,14 @@ onMounted(async () => {
 .info-card { text-align: center; }
 .avatar-section { padding: 20px 0; }
 .avatar-section h2 { margin: 12px 0 4px; font-size: 22px; }
+.avatar-uploader { display: inline-block; position: relative; cursor: pointer; }
+.avatar-uploader:hover .avatar-mask { opacity: 1; }
+.avatar-mask {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: rgba(0,0,0,0.4); color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 13px; gap: 4px; opacity: 0; transition: opacity 0.3s;
+}
 .student-no { color: #909399; font-size: 14px; }
 .info-list { text-align: left; }
 .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f2f2f2; font-size: 14px; }

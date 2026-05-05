@@ -16,7 +16,8 @@
 
     <!-- 数据表格区 -->
     <el-card shadow="never" class="table-card">
-      <el-table :data="tableData" v-loading="loading" border stripe style="width: 100%">
+      <el-skeleton v-if="loading && tableData.length === 0" animated :rows="8" :throttle="500" />
+      <el-table v-else :data="tableData" v-loading="loading" border stripe style="width: 100%">
         <el-table-column type="index" label="序号" width="60" align="center" />
         <el-table-column prop="repairType" label="故障类型" width="150" />
         <el-table-column prop="description" label="详细描述" show-overflow-tooltip />
@@ -332,15 +333,22 @@ const openDetail = async (row) => {
 }
 
 // WebSocket 推送后自动刷新列表
-const onStatusChanged = () => { fetchData() }
+const handleWsMessage = (e) => {
+  try {
+    const msg = JSON.parse(e.detail)
+    if (msg.type === 'repair_status_changed') {
+      fetchData()
+    }
+  } catch {}
+}
 
 // 挂载时拉取数据
 onMounted(() => {
   fetchData()
-  window.addEventListener('repair-status-changed', onStatusChanged)
+  window.addEventListener('ws-message', handleWsMessage)
 })
 onUnmounted(() => {
-  window.removeEventListener('repair-status-changed', onStatusChanged)
+  window.removeEventListener('ws-message', handleWsMessage)
 })
 </script>
 

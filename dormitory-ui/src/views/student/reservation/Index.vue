@@ -43,7 +43,7 @@
       <el-table :data="tableData" v-loading="tableLoading" border stripe empty-text="暂无预约记录">
         <el-table-column type="index" label="序号" width="60" align="center" />
         <el-table-column label="设备" min-width="160">
-          <template #default="scope">{{ getDeviceLabel(scope.row.deviceId) }}</template>
+          <template #default="scope">{{ scope.row.deviceName || '未知设备' }}</template>
         </el-table-column>
         <el-table-column prop="reservationDate" label="预约日期" width="120" />
         <el-table-column label="时段" width="180">
@@ -117,7 +117,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Monitor, Calendar, Finished, WindPower, Coffee } from '@element-plus/icons-vue'
 import { getDeviceList, getAvailableSlots, submitReservation, getMyReservations, cancelReservation } from '@/api/reservation'
@@ -155,11 +155,6 @@ const deviceIcon = (name) => {
   return 'Coffee'
 }
 
-const getDeviceLabel = (deviceId) => {
-  const d = devices.value.find(d => d.id === deviceId)
-  return d ? `${d.deviceName}` : '未知设备'
-}
-
 // === 预约弹窗 ===
 const bookingVisible = ref(false)
 const selectedDevice = ref(null)
@@ -170,6 +165,17 @@ const slotsLoading = ref(false)
 const slotsQueried = ref(false)
 
 const disabledDate = (time) => time.getTime() < Date.now() - 8.64e7
+
+// 本地时区格式化日期（避免 toISOString 的 UTC 时差问题）
+const fmtDate = (d) => {
+  if (!d) return ''
+  if (typeof d === 'string') return d
+  const dt = new Date(d)
+  const y = dt.getFullYear()
+  const m = String(dt.getMonth() + 1).padStart(2, '0')
+  const day = String(dt.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
 
 const openBooking = (device) => {
   selectedDevice.value = device
@@ -186,8 +192,7 @@ const querySlots = async () => {
   slotsQueried.value = true
   selectedSlot.value = null
   try {
-    const dateStr = typeof selectedDate.value === 'string' ? selectedDate.value
-      : selectedDate.value.toISOString().split('T')[0]
+    const dateStr = fmtDate(selectedDate.value)
     availableSlots.value = await getAvailableSlots(selectedDevice.value.id, dateStr) || []
   } catch (e) { availableSlots.value = [] }
   finally { slotsLoading.value = false }
@@ -202,8 +207,7 @@ const submitBooking = async () => {
   if (!selectedSlot.value) return
   submitLoading.value = true
   try {
-    const dateStr = typeof selectedDate.value === 'string' ? selectedDate.value
-      : selectedDate.value.toISOString().split('T')[0]
+    const dateStr = fmtDate(selectedDate.value)
     await submitReservation({
       deviceId: selectedDevice.value.id,
       reservationDate: dateStr,
@@ -244,7 +248,33 @@ const handleCancel = (id) => {
   }).catch(() => {})
 }
 
-onMounted(() => { fetchDevices(); fetchMyReservations() })
+const handleWsMessage = (e) => {
+  try {
+    const msg = JSON.parse(e.detail)
+    if (msg.type === 'device_status_changed') {
+      fetchDevices()
+    } else if (msg.type === 'reservation_changed') {
+      fetchDevices()
+      if (bookingVisible.value) {
+        availableSlots.value = []
+        selectedSlot.value = null
+        slotsQueried.value = false
+      }
+    } else if (msg.type === 'reservation_completed') {
+      fetchMyReservations()
+    }
+  } catch {}
+}
+
+onMounted(() => {
+  fetchDevices()
+  fetchMyReservations()
+  window.addEventListener('ws-message', handleWsMessage)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('ws-message', handleWsMessage)
+})
 </script>
 
 <style scoped>

@@ -6,8 +6,12 @@ import com.dormitory.dormitoryserver.dto.LostFoundSubmitDTO;
 import com.dormitory.dormitoryserver.dto.LostFoundUpdateStatusDTO;
 import com.dormitory.dormitoryserver.dto.ViolationReviewDTO;
 import com.dormitory.dormitoryserver.entity.LostFound;
+import com.dormitory.dormitoryserver.entity.Notification;
+import com.dormitory.dormitoryserver.entity.Student;
 import com.dormitory.dormitoryserver.exception.BaseException;
 import com.dormitory.dormitoryserver.mapper.LostFoundMapper;
+import com.dormitory.dormitoryserver.mapper.NotificationMapper;
+import com.dormitory.dormitoryserver.mapper.StudentMapper;
 import com.dormitory.dormitoryserver.result.PageResult;
 import com.dormitory.dormitoryserver.service.LostFoundService;
 import com.github.pagehelper.Page;
@@ -17,12 +21,20 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @Slf4j
 public class LostFoundServiceImpl implements LostFoundService {
 
     @Autowired
     private LostFoundMapper lostFoundMapper;
+
+    @Autowired
+    private NotificationMapper notificationMapper;
+
+    @Autowired
+    private StudentMapper studentMapper;
 
     @Override
     public void publish(LostFoundSubmitDTO dto) {
@@ -39,8 +51,8 @@ public class LostFoundServiceImpl implements LostFoundService {
 
         // 初始化状态：0 (寻找中/待认领)
         lostFound.setStatus(0);
-
-        // 备注：createTime 和 updateTime 已经在数据库建表时设置了默认生成，所以这里无需手动 set
+        lostFound.setCreateTime(LocalDateTime.now());
+        lostFound.setUpdateTime(LocalDateTime.now());
 
         // 4. 调用 Mapper 插入数据库
         lostFoundMapper.insert(lostFound);
@@ -106,13 +118,68 @@ public class LostFoundServiceImpl implements LostFoundService {
     public void violate(ViolationReviewDTO dto) {
         log.info("管理员触发违规下架失物招领，ID：{}, 原因：{}", dto.getId(), dto.getReason());
 
+        // 1. 检查存在性
+        LostFound exist = lostFoundMapper.getById(dto.getId());
+        if (exist == null) {
+            throw new BaseException("该信息不存在");
+        }
+
+        // 2. 只有待审核状态(0)才能下架
+        if (exist.getStatus() != 0) {
+            throw new BaseException("该信息已被处理，无法重复下架");
+        }
+
         LostFound lostFound = new LostFound();
         lostFound.setId(dto.getId());
-        // 状态 2 表示：已撤销/已下架
         lostFound.setStatus(2);
         lostFound.setUpdateTime(java.time.LocalDateTime.now());
-
-        // 复用已有的 update 方法
         lostFoundMapper.update(lostFound);
+    }
+
+    @Override
+    public PageResult adminPageQuery(LostFoundPageQueryDTO dto) {
+        PageHelper.startPage(dto.getPage(), dto.getPageSize());
+        Page<LostFound> page = lostFoundMapper.pageQuery(dto);
+        return new PageResult(page.getTotal(), page.getResult());
+    }
+
+    @Override
+    public void claim(Long lostFoundId) {
+        // 1. 校验信息存在
+        LostFound lf = lostFoundMapper.getById(lostFoundId);
+        if (lf == null) {
+            throw new BaseException("该信息不存在");
+        }
+        if (lf.getStatus() != 0) {
+            throw new BaseException("该信息已完结");
+        }
+
+        // 2. 获取当前学生（认领者）
+        Long claimerId = BaseContext.getCurrentId();
+        if (claimerId.equals(lf.getStudentId())) {
+            throw new BaseException("不能认领自己发布的信息");
+        }
+
+        Student claimer = studentMapper.getById(claimerId);
+
+        // 3. 根据类型生成不同的通知文案
+        Notification noti = new Notification();
+        noti.setStudentId(lf.getStudentId());
+        noti.setType(4);
+        noti.setIsRead(0);
+        noti.setCreateTime(LocalDateTime.now());
+
+        if (lf.getType() == 1) {
+            // 失物招领：有人捡到东西，失主来认领
+            noti.setTitle("有人想认领你的信息");
+            noti.setContent(claimer.getName() + "（手机 " + claimer.getPhone() + "）想认领你发布的「" + lf.getTitle() + "」，请主动联系对方。");
+        } else {
+            // 寻物启事：有人丢了东西，捡到者来提供线索
+            noti.setTitle("有人可能捡到了你的物品");
+            noti.setContent(claimer.getName() + "（手机 " + claimer.getPhone() + "）可能捡到了你丢失的「" + lf.getTitle() + "」，请主动联系对方。");
+        }
+        notificationMapper.insert(noti);
+
+        log.info("学生 {} 发起联系请求，类型={}, 失物招领ID={}", claimerId, lf.getType(), lostFoundId);
     }
 }

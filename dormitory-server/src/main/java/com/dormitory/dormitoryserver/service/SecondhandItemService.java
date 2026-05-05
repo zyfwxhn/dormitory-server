@@ -37,4 +37,9 @@ public interface SecondhandItemService {
      * 管理员违规下架二手商品
      */
     void violate(ViolationReviewDTO dto);
+
+    /**
+     * 管理员分页查询（不过滤 status）
+     */
+    PageResult adminPageQuery(SecondhandItemPageQueryDTO dto);
 }

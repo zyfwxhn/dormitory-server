@@ -56,11 +56,11 @@ public class ItemMessageServiceImpl implements ItemMessageService {
         // 3. 保存通知到数据库（离线持久化）
         notificationMapper.insert(notification);
 
-        // 4. 【新增核心逻辑】通过 WebSocket 进行实时推送（在线实时通道）
-        // 将接收方ID转为String，发送实时文本消息
+        // 4. WebSocket 实时推送（JSON 格式，前端可按 type 区分处理）
+        String wsMsg = String.format("{\"type\":\"new_message\",\"itemId\":%d}", itemMessage.getItemId());
         webSocketServer.sendToSpecificClient(
                 itemMessage.getToStudentId().toString(),
-                finalNotifyContent
+                wsMsg
         );
     }
 

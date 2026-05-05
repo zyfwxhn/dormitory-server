@@ -69,4 +69,13 @@ public class StudentLostFoundController {
         return Result.success(lostFound);
     }
 
+    /**
+     * 学生发起认领：通过平台通知发布者，不暴露手机号
+     */
+    @PostMapping("/claim/{id}")
+    public Result claim(@PathVariable Long id) {
+        lostFoundService.claim(id);
+        return Result.success("认领请求已发送，请等待发布者联系你");
+    }
+
 }
