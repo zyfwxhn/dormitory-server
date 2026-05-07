@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class SecondhandItem {
 
     /**
-     * 主键，自增
+     * 主键, 自增
      */
     private Long id;
 
@@ -38,27 +38,27 @@ public class SecondhandItem {
     private String description;
 
     /**
-     * 商品分类（如：电子数码、生活用品、代步工具）
+     * 商品分类 (如: 电子数码、生活用品、代步工具)
      */
     private String category;
 
     /**
-     * 出售价格（极其重要：必须使用 BigDecimal 保证精度）
+     * 出售价格 (极其重要: 必须使用 BigDecimal 保证精度)
      */
     private BigDecimal price;
 
     /**
-     * 成色（如：全新、9成新等）
+     * 成色 (如: 全新、9成新等)
      */
     private String conditionLevel;
 
     /**
-     * 商品图片（多张逗号分隔）
+     * 商品图片 (多张逗号分隔)
      */
     private String images;
 
     /**
-     * 状态（0: 在售, 1: 已售出, 2: 已下架）
+     * 状态 (0: 在售, 1: 已售出, 2: 已下架)
      */
     private Integer status;
 
@@ -72,7 +72,7 @@ public class SecondhandItem {
      */
     private LocalDateTime updateTime;
 
-    // === 关联学生信息（查询时 JOIN 填充） ===
+    // === 关联学生信息 (查询时 JOIN 填充) ===
     private String studentName;      // 卖家姓名
     private String studentNo;        // 卖家学号
     private String studentAvatar;    // 卖家头像

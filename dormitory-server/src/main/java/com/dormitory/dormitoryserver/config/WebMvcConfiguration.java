@@ -37,8 +37,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     private JwtTokenAdminInterceptor jwtTokenAdminInterceptor;
 
     /**
-     * 因为继承了 WebMvcConfigurationSupport，Spring Boot 的 Jackson 自动配置被禁用，
-     * 必须手动注册 JavaTimeModule，否则 LocalDateTime 会被序列化为数组 [2026,5,2,21,39,18]
+     * * 注册 JavaTimeModule 适配 LocalDateTime 序列化
      */
     @Bean
     public ObjectMapper jacksonObjectMapper() {

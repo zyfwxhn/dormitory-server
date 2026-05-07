@@ -18,7 +18,7 @@ public class PageResult implements Serializable {
     // 总记录数
     private long total;
 
-    // 当前页数据集合 (使用 <?> 消除 Unchecked 泛型警告，且不影响原有业务逻辑)
+    // 当前页数据集合
     private List<?> records;
 
 }

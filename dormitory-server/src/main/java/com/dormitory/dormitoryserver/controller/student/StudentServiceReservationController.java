@@ -15,7 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * 学生端：生活服务预约接口
+ * 学生端: 生活服务预约接口
  */
 @RestController
 @RequestMapping("/student/reservation")
@@ -40,7 +40,7 @@ public class StudentServiceReservationController {
     }
 
     /**
-     * 查询洗衣机某天的可用空闲时段（错峰推荐）
+     * 查询洗衣机某天的可用空闲时段 (错峰推荐)
      */
     @GetMapping("/available-slots")
     public Result<List<AvailableTimeSlotVO>> getAvailableSlots(
@@ -52,19 +52,19 @@ public class StudentServiceReservationController {
     }
 
     /**
-     * 查询当前学生的预约记录（分页）
+     * 查询当前学生的预约记录 (分页)
      */
     @GetMapping("/my")
     public Result<PageResult> pageQuery(@RequestParam(defaultValue = "1") Integer page,
                                          @RequestParam(defaultValue = "10") Integer pageSize) {
-        log.info("学生查询自己的预约记录：page={}, pageSize={}", page, pageSize);
+        log.info("学生查询自己的预约记录: page={}, pageSize={}", page, pageSize);
         PageResult pageResult = serviceReservationService.pageQuery(page, pageSize);
         return Result.success(pageResult);
     }
 
     @PutMapping("/cancel/{id}")
     public Result cancel(@PathVariable Long id) {
-        log.info("取消预约：{}", id);
+        log.info("取消预约: {}", id);
         serviceReservationService.cancelReservation(id);
         return Result.success();
     }

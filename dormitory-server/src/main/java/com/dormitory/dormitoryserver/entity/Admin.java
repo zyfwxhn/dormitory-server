@@ -18,7 +18,7 @@ public class Admin implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Long id; // 主键，自增
+    private Long id; // 主键, 自增
 
     private String username; // 管理员账号
 

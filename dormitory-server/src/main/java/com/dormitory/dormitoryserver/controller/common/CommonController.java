@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.Set;
 
 /**
- * 通用接口大厅 (供各端共用)
+ * 通用接口大厅
  */
 @RestController
 @RequestMapping("/common")
@@ -25,26 +25,25 @@ public class CommonController {
 
     /**
      * 通用文件上传接口
-     * 注意：Spring MVC 中接收文件流必须使用 MultipartFile 类型
      * @param file 前端传来的文件对象
-     * @return 统一响应结果，data 是图片的访问 URL
+     * @return 统一响应结果, data 是图片的访问 URL
      */
     @PostMapping("/upload")
     public Result<String> upload(MultipartFile file) {
         log.info("接收到文件上传请求: {}", file.getOriginalFilename());
 
-        // 文件类型白名单校验
+        
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || !isAllowedFile(originalFilename)) {
-            return Result.error("不支持的文件类型，仅允许上传图片（jpg/png/gif/webp/bmp）");
+            return Result.error("不支持的文件类型, 仅允许上传图片 (jpg/png/gif/webp/bmp)");
         }
 
         try {
             String url = aliOssUtil.upload(file.getInputStream(), originalFilename);
             return Result.success(url);
         } catch (IOException e) {
-            log.error("文件上传异常，文件名: {}, 原因: ", originalFilename, e);
-            return Result.error("文件上传失败，请稍后重试");
+            log.error("文件上传异常, 文件名: {}, 原因: ", originalFilename, e);
+            return Result.error("文件上传失败, 请稍后重试");
         }
     }
 

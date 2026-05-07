@@ -20,16 +20,15 @@ public interface RepairOrderMapper {
     void insert(RepairOrder repairOrder);
 
     /**
-     * 分页查询历史报修记录（带动态条件和数据隔离）
-     * 注意：多个参数必须使用 @Param 绑定 XML 中的变量名
+     * 分页查询历史报修记录 (带动态条件和数据隔离)
      * * @param queryDTO 分页和状态查询条件
-     * @param studentId 当前登录学生ID（强制数据隔离）
+     * @param studentId 当前登录学生ID
      * @return Page<RepairOrder>
      */
     Page<RepairOrder> pageQuery(@Param("queryDTO") RepairOrderPageQueryDTO queryDTO, @Param("studentId") Long studentId);
 
     /**
-     * 根据主键 ID 和 学生 ID 查询报修单详情（双重条件防越权）
+     * 根据主键 ID 和 学生 ID 查询报修单详情
      * @param id 订单ID
      * @param studentId 当前登录学生ID
      * @return RepairOrder
@@ -38,15 +37,14 @@ public interface RepairOrderMapper {
     RepairOrder getByIdAndStudentId(@Param("id") Long id, @Param("studentId") Long studentId);
 
     /**
-     * 管理端：多条件动态分页查询全校报修单
-     * 注意：这里只有一个参数，所以可以不加 @Param，MyBatis 会自动解析对象的属性
+     * 管理端: 多条件动态分页查询全校报修单
      * @param queryDTO 管理端查询条件
      * @return Page<RepairOrder>
      */
     Page<RepairOrder> adminPageQuery(RepairOrderAdminPageQueryDTO queryDTO);
 
     /**
-     * 管理端：根据主键查询报修单（无需过滤 student_id）
+     * 管理端: 根据主键查询报修单 (无需过滤 student_id)
      */
     @Select("SELECT r.*, s.name AS studentName, s.student_no AS studentNo, s.phone AS studentPhone FROM repair_order r LEFT JOIN student s ON r.student_id = s.id WHERE r.id = #{id}")
     RepairOrder getById(Long id);
@@ -63,13 +61,13 @@ public interface RepairOrderMapper {
     Integer getTodayNewRepairCount();
 
     /**
-     * 统计今日已完成的报修单数量 (状态 3 为已完成)
+     * 统计今日已完成的报修单数量
      */
     @org.apache.ibatis.annotations.Select("SELECT COUNT(id) FROM repair_order WHERE DATE(update_time) = CURDATE() AND status = 3")
     Integer getTodayFinishedRepairCount();
 
     /**
-     * 统计各状态的报修单数量分布 (用于饼图)
+     * 统计各状态的报修单数量分布
      */
     List<StatusCountVO> getStatusCount();
 

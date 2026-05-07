@@ -45,3 +45,11 @@ export const sendItemMessage = (data) => {
     data: data
   })
 }
+
+export const editSecondhand = (id, data) => {
+  return request({
+    url: `/student/secondhand-item/${id}`,
+    method: 'put',
+    data
+  })
+}

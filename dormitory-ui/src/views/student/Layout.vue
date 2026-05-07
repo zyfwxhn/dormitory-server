@@ -73,7 +73,7 @@
         </div>
       </el-header>
 
-      <!-- 核心页面渲染区域（嵌套路由出口） -->
+      <!-- 路由出口 -->
       <el-main class="main-content">
         <router-view v-slot="{ Component }">
           <transition name="fade-transform" mode="out-in">
@@ -107,6 +107,13 @@ const currentPath = computed(() => route.path)
 const userInfo = JSON.parse(localStorage.getItem('student_userInfo') || '{}')
 const userName = ref(userInfo.name || '未知')
 const userAvatar = ref('')
+
+const refreshAvatar = async () => {
+  try {
+    const info = await getStudentInfo()
+    if (info?.avatar) userAvatar.value = info.avatar
+  } catch (e) { /* ignore */ }
+}
 const unreadCount = ref(0)
 
 const fetchUnreadCount = async () => {
@@ -127,21 +134,20 @@ const onWsMessage = (e) => {
 
 onMounted(async () => {
   fetchUnreadCount()
-  try {
-    const info = await getStudentInfo()
-    if (info?.avatar) userAvatar.value = info.avatar
-  } catch (e) { /* ignore */ }
+  refreshAvatar()
   const sid = userInfo.id
   if (sid) {
     connectWebSocket(sid)
   }
   window.addEventListener('ws-message', onWsMessage)
   window.addEventListener('notification-read', fetchUnreadCount)
+  window.addEventListener('avatar-updated', refreshAvatar)
 })
 
 onUnmounted(() => {
   window.removeEventListener('ws-message', onWsMessage)
   window.removeEventListener('notification-read', fetchUnreadCount)
+  window.removeEventListener('avatar-updated', refreshAvatar)
 })
 
 const handleCommand = (command) => {

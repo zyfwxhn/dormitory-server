@@ -24,10 +24,10 @@ public class Notification implements Serializable {
     /** 通知具体内容 */
     private String content;
 
-    /** 业务类型：1-报修通知，2-二手留言，3-生活预约提醒 */
+    /** 业务类型: 1-报修通知, 2-二手留言, 3-生活预约提醒 */
     private Integer type;
 
-    /** 是否已读：0-未读，1-已读 */
+    /** 是否已读: 0-未读, 1-已读 */
     private Integer isRead;
 
     /** 创建/发送时间 */

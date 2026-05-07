@@ -18,7 +18,7 @@ public class JwtUtil {
      *
      * @param secretKey jwt秘钥
      * @param ttlMillis jwt过期时间(毫秒)
-     * @param claims    需要在 token 中携带的自定义信息（如用户ID）
+     * @param claims    需要在 token 中携带的自定义信息 (如用户ID)
      * @return 加密后的 token 字符串
      */
     public static String createJWT(String secretKey, long ttlMillis, Map<String, Object> claims) {
@@ -38,7 +38,7 @@ public class JwtUtil {
      *
      * @param secretKey jwt秘钥
      * @param token     加密后的token
-     * @return 解析后的 Claims 对象（可以通过它获取当时存入的自定义信息）
+     * @return 解析后的 Claims 对象 (可以通过它获取当时存入的自定义信息)
      */
     public static Claims parseJWT(String secretKey, String token) {
         return Jwts.parser()

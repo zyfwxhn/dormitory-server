@@ -25,8 +25,8 @@
             <el-tag :type="statusType(scope.row.status)">{{ statusLabel(scope.row.status) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="workerId" label="维修员" width="100" align="center">
-          <template #default="scope">{{ scope.row.workerId ? '#' + scope.row.workerId : '--' }}</template>
+        <el-table-column prop="workerName" label="维修员" width="100" align="center">
+          <template #default="scope">{{ scope.row.workerName || '未分配' }}</template>
         </el-table-column>
         <el-table-column prop="createTime" label="提交时间" width="180" />
         <el-table-column label="操作" width="160" align="center" fixed="right">
@@ -66,7 +66,7 @@
         <el-descriptions-item label="状态">
           <el-tag :type="statusType(detailData.status)">{{ statusLabel(detailData.status) }}</el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="维修员">#{{ detailData.workerId || '未分配' }}</el-descriptions-item>
+        <el-descriptions-item label="维修员">{{ detailData.workerName || '未分配' }}</el-descriptions-item>
         <el-descriptions-item label="提交时间">{{ detailData.createTime }}</el-descriptions-item>
         <el-descriptions-item v-if="detailData.images" label="现场照片" :span="2">
           <div class="detail-images">

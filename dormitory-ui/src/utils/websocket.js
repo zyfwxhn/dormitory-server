@@ -1,5 +1,5 @@
 /**
- * WebSocket 客户端 — 学生端接收实时通知
+ * WebSocket 客户端 
  */
 
 let socket = null

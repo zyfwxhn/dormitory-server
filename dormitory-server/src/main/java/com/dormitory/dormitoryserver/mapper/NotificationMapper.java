@@ -15,14 +15,14 @@ public interface NotificationMapper {
     void insert(Notification notification);
 
     /**
-     * 根据学生ID查询其所有的通知列表（按时间降序）
+     * 根据学生ID查询其所有的通知列表
      * @param studentId
      * @return
      */
     List<Notification> getByStudentId(Long studentId);
 
     /**
-     * 将某条通知标记为已读（携带学生ID防止横向越权）
+     * 将某条通知标记为已读
      * @param id
      * @param studentId
      */

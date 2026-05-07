@@ -14,6 +14,6 @@ public class ViolationReviewDTO implements Serializable {
     @NotNull(message = "内容ID不能为空")
     private Long id;
 
-    // 违规原因（可选，当前数据库虽无字段，但可用于后续扩展或打入日志记录）
+    // 违规原因
     private String reason;
 }

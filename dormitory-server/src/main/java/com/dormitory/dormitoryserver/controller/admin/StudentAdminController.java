@@ -29,14 +29,14 @@ public class StudentAdminController {
      */
     @PostMapping("/import")
     public Result importStudents(@RequestParam("file") MultipartFile file) {
-        log.info("管理员请求导入学生数据：{}", file.getOriginalFilename());
+        log.info("管理员请求导入学生数据: {}", file.getOriginalFilename());
         try {
-            // 使用 EasyExcel 读取文件流，传入我们写好的 Listener
+            
             EasyExcel.read(file.getInputStream(), StudentExcelDTO.class, new StudentExcelListener(studentService)).sheet().doRead();
             return Result.success("批量导入学生成功！");
         } catch (IOException e) {
             log.error("Excel读取失败", e);
-            return Result.error("导入失败：" + e.getMessage());
+            return Result.error("导入失败: " + e.getMessage());
         }
     }
 }

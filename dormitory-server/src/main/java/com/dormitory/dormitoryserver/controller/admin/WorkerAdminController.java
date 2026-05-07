@@ -29,7 +29,7 @@ public class WorkerAdminController {
      */
     @GetMapping("/page")
     public Result<PageResult> pageQuery(WorkerSaveDTO dto) {
-        log.info("管理端分页查询维修员列表：{}", dto);
+        log.info("管理端分页查询维修员列表: {}", dto);
         PageResult pageResult = workerService.pageQuery(dto);
         return Result.success(pageResult);
     }
@@ -39,7 +39,7 @@ public class WorkerAdminController {
      */
     @PostMapping
     public Result save(@RequestBody WorkerSaveDTO dto) {
-        log.info("新增维修员：{}", dto);
+        log.info("新增维修员: {}", dto);
         workerService.save(dto);
         return Result.success();
     }
@@ -49,7 +49,7 @@ public class WorkerAdminController {
      */
     @PutMapping
     public Result update(@RequestBody WorkerSaveDTO dto) {
-        log.info("修改维修员信息：{}", dto);
+        log.info("修改维修员信息: {}", dto);
         workerService.update(dto);
         return Result.success();
     }
@@ -59,17 +59,17 @@ public class WorkerAdminController {
      */
     @PutMapping("/{id}/status/{status}")
     public Result startOrStop(@PathVariable Long id, @PathVariable Integer status) {
-        log.info("启用停用维修员：id={}, status={}", id, status);
+        log.info("启用停用维修员: id={}, status={}", id, status);
         workerService.startOrStop(status, id);
         return Result.success();
     }
 
     /**
-     * 批量导入维修员（Excel）
+     * 批量导入维修员 (Excel)
      */
     @PostMapping("/import")
     public Result importWorkers(@RequestParam("file") MultipartFile file) {
-        log.info("管理员请求批量导入维修员：{}", file.getOriginalFilename());
+        log.info("管理员请求批量导入维修员: {}", file.getOriginalFilename());
         try {
             List<WorkerExcelDTO> list = EasyExcel.read(file.getInputStream())
                     .head(WorkerExcelDTO.class).sheet().doReadSync();
@@ -77,7 +77,7 @@ public class WorkerAdminController {
             return Result.success("批量导入维修员成功！共导入 " + list.size() + " 条");
         } catch (IOException e) {
             log.error("Excel读取失败", e);
-            return Result.error("导入失败：" + e.getMessage());
+            return Result.error("导入失败: " + e.getMessage());
         }
     }
 }

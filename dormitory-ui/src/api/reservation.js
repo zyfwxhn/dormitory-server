@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-// 获取可用设备列表（可选按楼栋过滤）
+// 获取可用设备列表
 export const getDeviceList = (buildingNo) => {
   return request({
     url: '/student/device/list',

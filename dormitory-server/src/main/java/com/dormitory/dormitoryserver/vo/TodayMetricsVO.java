@@ -18,6 +18,6 @@ public class TodayMetricsVO implements Serializable {
     private Integer newRepairCount;
     // 今日已完成维修数
     private Integer finishedRepairCount;
-    // 当前系统闲置服务设备数（如可用洗衣机）
+    // 当前系统闲置服务设备数 (如可用洗衣机)
     private Integer idleDeviceCount;
 }

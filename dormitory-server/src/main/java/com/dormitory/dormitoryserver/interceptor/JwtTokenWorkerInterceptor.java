@@ -35,14 +35,14 @@ public class JwtTokenWorkerInterceptor implements HandlerInterceptor {
             log.info("维修员 JWT 校验: {}", token);
             Claims claims = JwtUtil.parseJWT(jwtProperties.getWorkerSecretKey(), token);
 
-            // 【重构点】使用常量替换魔法字符串 "workerId"
+            // 将维修员ID存入ThreadLocal
             Long workerId = Long.valueOf(claims.get(JwtClaimsConstant.WORKER_ID).toString());
             log.info("当前登录的维修员ID: {}", workerId);
 
             BaseContext.setCurrentId(workerId);
             return true;
         } catch (Exception ex) {
-            log.error("维修员 JWT 解析失败或已过期：{}", ex.getMessage());
+            log.error("维修员 JWT 解析失败或已过期: {}", ex.getMessage());
             response.setStatus(401);
             return false;
         }

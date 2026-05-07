@@ -25,7 +25,7 @@ public class StudentNotificationController {
      */
     @GetMapping
     public Result<List<Notification>> getMyNotifications() {
-        // 从 ThreadLocal 中获取当前登录学生的 ID
+        
         Long currentStudentId = BaseContext.getCurrentId();
         List<Notification> notifications = notificationService.getStudentNotifications(currentStudentId);
         return Result.success(notifications);
@@ -33,7 +33,6 @@ public class StudentNotificationController {
 
     /**
      * 将指定通知标记为已读
-     * 这里使用 PUT 请求，代表修改状态
      * @param id
      * @return
      */

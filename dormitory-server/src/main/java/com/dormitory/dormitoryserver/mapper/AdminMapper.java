@@ -30,7 +30,7 @@ public interface AdminMapper {
     /**
      * 修改管理员密码
      * @param id 管理员ID
-     * @param newPassword 新密码（MD5加密后）
+     * @param newPassword 新密码
      */
     @Update("UPDATE admin SET password = #{newPassword} WHERE id = #{id}")
     void updatePassword(Long id, String newPassword);

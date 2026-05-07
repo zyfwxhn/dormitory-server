@@ -13,7 +13,7 @@ public interface NotificationService {
     List<Notification> getStudentNotifications(Long studentId);
 
     /**
-     * 将通知标记为已读（需校验学生身份）
+     * 将通知标记为已读
      * @param id
      * @param studentId
      */

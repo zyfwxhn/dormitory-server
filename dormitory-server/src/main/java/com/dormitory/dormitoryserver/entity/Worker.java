@@ -18,7 +18,7 @@ public class Worker implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Long id; // 主键，自增
+    private Long id; // 主键, 自增
 
     private String username; // 维修员工号/登录账号
 
@@ -28,9 +28,9 @@ public class Worker implements Serializable {
 
     private String phone; // 手机号
 
-    private String skills; // 擅长领域（如：电工、木工）
+    private String skills; // 擅长领域
 
-    private Integer isAvailable; // 是否在岗（1:是, 0:否）
+    private Integer isAvailable; // 是否在岗 (1:是, 0:否)
 
     private LocalDateTime createTime; // 创建时间
 

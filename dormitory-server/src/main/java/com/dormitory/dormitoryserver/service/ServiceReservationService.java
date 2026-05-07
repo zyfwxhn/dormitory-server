@@ -29,7 +29,7 @@ public interface ServiceReservationService {
     PageResult pageQuery(Integer page, Integer pageSize);
 
     /**
-     * 管理员端：分页查询所有预约记录
+     * 管理员端: 分页查询所有预约记录
      */
     PageResult adminPageQuery(Integer page, Integer pageSize, Integer status, String studentNo);
 }

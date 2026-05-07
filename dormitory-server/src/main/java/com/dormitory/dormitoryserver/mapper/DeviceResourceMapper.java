@@ -34,7 +34,7 @@ public interface DeviceResourceMapper {
     void deleteBatch(List<Long> ids);
 
     /**
-     * 批量新增设备（Excel 导入）
+     * 批量新增设备 (Excel 导入)
      */
     void insertBatch(List<DeviceResource> list);
 

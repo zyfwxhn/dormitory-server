@@ -39,12 +39,17 @@ public interface LostFoundService {
     void violate(ViolationReviewDTO dto);
 
     /**
-     * 管理员分页查询（不过滤 status，可查看所有状态）
+     * 管理员分页查询
      */
     PageResult adminPageQuery(LostFoundPageQueryDTO dto);
 
     /**
-     * 学生发起认领：给发布者发送通知，不暴露双方联系方式
+     * 学生发起认领: 给发布者发送通知, 不暴露双方联系方式
      */
     void claim(Long lostFoundId);
+
+    /**
+     * 学生编辑自己的发布信息
+     */
+    void edit(LostFoundSubmitDTO dto, Long id);
 }

@@ -10,6 +10,7 @@ import com.dormitory.dormitoryserver.service.LostFoundService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 学生端 - 失物招领接口
@@ -17,9 +18,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/student/lost-found")
 @Validated
+@Slf4j
 public class StudentLostFoundController {
-
-
      @Autowired
      private LostFoundService lostFoundService;
 
@@ -36,21 +36,21 @@ public class StudentLostFoundController {
     }
 
     /**
-     * 浏览失物招领大厅（分页条件查询）
-     * 注意：GET 请求不要加 @RequestBody
+     * 浏览失物招领大厅 (分页条件查询)
+     * 注意: GET 请求不要加 @RequestBody
      * @param lostFoundPageQueryDTO 查询条件
      * @return 包含列表和总数的分页结果
      */
     @GetMapping("/page")
     public Result<PageResult> pageQuery(LostFoundPageQueryDTO lostFoundPageQueryDTO) {
-        // 调用 Service 层进行分页查询
+        
         PageResult pageResult = lostFoundService.pageQuery(lostFoundPageQueryDTO);
         return Result.success(pageResult);
 
     }
 
     /**
-     * 修改发布信息状态（如：认领成功标记为已解决，或自己撤销）
+     * 修改发布信息状态
      */
     @PutMapping("/status")
     public Result<String> updateStatus(@RequestBody @Validated LostFoundUpdateStatusDTO dto) {
@@ -70,12 +70,22 @@ public class StudentLostFoundController {
     }
 
     /**
-     * 学生发起认领：通过平台通知发布者，不暴露手机号
+     * 学生发起认领: 通过平台通知发布者, 不暴露手机号
      */
     @PostMapping("/claim/{id}")
     public Result claim(@PathVariable Long id) {
         lostFoundService.claim(id);
-        return Result.success("认领请求已发送，请等待发布者联系你");
+        return Result.success("认领请求已发送, 请等待发布者联系你");
+    }
+
+    /**
+     * 学生编辑自己的发布信息
+     */
+    @PutMapping("/{id}")
+    public Result edit(@PathVariable Long id, @RequestBody LostFoundSubmitDTO dto) {
+        log.info("学生编辑失物招领信息: id={}, {}", id, dto.getTitle());
+        lostFoundService.edit(dto, id);
+        return Result.success("修改成功");
     }
 
 }

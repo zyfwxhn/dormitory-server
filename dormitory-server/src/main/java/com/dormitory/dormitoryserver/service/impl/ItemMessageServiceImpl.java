@@ -23,40 +23,29 @@ public class ItemMessageServiceImpl implements ItemMessageService {
     @Autowired
     private NotificationMapper notificationMapper;
 
-    // 1. 注入我们刚刚写好的 WebSocket 组件
     @Autowired
     private WebSocketServer webSocketServer;
 
-    /**
-     * @Transactional 保证留言和发通知两个动作在同一个事务中
-     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void publishMessage(ItemMessage itemMessage) {
-        // 1. 补全留言时间并保存留言
         itemMessage.setCreateTime(LocalDateTime.now());
         itemMessageMapper.insert(itemMessage);
 
-        // 2. 构造一条系统通知发给接收方(卖家)
+        // 给接收方发系统通知
         Notification notification = new Notification();
         notification.setStudentId(itemMessage.getToStudentId());
         notification.setTitle("二手交易新留言提醒");
-
-        // 截取部分留言内容作为通知摘要
         String contentPreview = itemMessage.getContent().length() > 20
                 ? itemMessage.getContent().substring(0, 20) + "..."
                 : itemMessage.getContent();
-
-        String finalNotifyContent = "您的二手商品收到了新留言: " + contentPreview;
-        notification.setContent(finalNotifyContent);
-        notification.setType(2); // 业务类型：2-二手留言
-        notification.setIsRead(0); // 0-未读
+        notification.setContent("您的二手商品收到了新留言: " + contentPreview);
+        notification.setType(2);
+        notification.setIsRead(0);
         notification.setCreateTime(LocalDateTime.now());
-
-        // 3. 保存通知到数据库（离线持久化）
         notificationMapper.insert(notification);
 
-        // 4. WebSocket 实时推送（JSON 格式，前端可按 type 区分处理）
+        // WebSocket 实时推送
         String wsMsg = String.format("{\"type\":\"new_message\",\"itemId\":%d}", itemMessage.getItemId());
         webSocketServer.sendToSpecificClient(
                 itemMessage.getToStudentId().toString(),

@@ -5,9 +5,8 @@ import org.springframework.util.DigestUtils;
 
 /**
  * 密码工具类 — BCrypt + 旧 MD5 平滑迁移
- *
- * matches() 兼容旧 MD5 密码：BCrypt 验证失败时自动降级 MD5 比对，
- * 用户登录成功后可正常使用，下次修改密码时自动升级为 BCrypt。
+ * matches() 兼容旧 MD5 密码: BCrypt 验证失败时自动降级 MD5 比对, 
+ * 用户登录成功后可正常使用, 下次修改密码时自动升级为 BCrypt.
  */
 public class PasswordUtil {
 
@@ -43,7 +42,7 @@ public class PasswordUtil {
     }
 
     /**
-     * 判断存储的密码是否为 BCrypt 格式（已迁移）
+     * 判断存储的密码是否为 BCrypt 格式
      */
     public static boolean isBCrypt(String encodedPassword) {
         return encodedPassword != null && encodedPassword.startsWith("$2");

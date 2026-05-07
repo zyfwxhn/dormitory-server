@@ -32,7 +32,6 @@ public class ServiceReservationServiceImpl implements ServiceReservationService 
     @Autowired
     private ServiceReservationMapper serviceReservationMapper;
 
-    // 【新增】注入 SpringBoot 的 Redis 模板
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
@@ -40,7 +39,7 @@ public class ServiceReservationServiceImpl implements ServiceReservationService 
     private WebSocketServer webSocketServer;
 
     @Override
-    @Transactional // 开启事务
+    @Transactional
     public void submitReservation(ReservationSubmitDTO dto) {
         log.info("接收到预约请求: {}", dto);
 
@@ -61,7 +60,7 @@ public class ServiceReservationServiceImpl implements ServiceReservationService 
 
         Long currentStudentId = BaseContext.getCurrentId();
 
-        // 2. 尝试 Redis 分布式锁（Redis 不可用时降级为纯数据库校验）
+        // 2. 尝试 Redis 分布式锁 (Redis 不可用时降级为纯数据库校验)
         String lockKey = String.format("lock:reservation:device:%d:date:%s:time:%s",
                 dto.getDeviceId(),
                 dto.getReservationDate().toString(),
@@ -72,15 +71,15 @@ public class ServiceReservationServiceImpl implements ServiceReservationService 
             Boolean got = stringRedisTemplate.opsForValue()
                     .setIfAbsent(lockKey, String.valueOf(currentStudentId), 2, TimeUnit.HOURS);
             if (Boolean.FALSE.equals(got)) {
-                throw new BaseException("手慢了！该设备的这个时段已被其他同学抢占，请重新选择时间。");
+                throw new BaseException("手慢了！该设备的这个时段已被其他同学抢占, 请重新选择时间.");
             }
             redisLocked = true;
         } catch (Exception e) {
-            log.warn("Redis 不可用，降级为数据库校验: {}", e.getMessage());
+            log.warn("Redis 不可用, 降级为数据库校验: {}", e.getMessage());
         }
 
         try {
-            // 3. 数据库防重校验
+            // 数据库冲突检测
             int conflictCount = serviceReservationMapper.checkConflict(
                     dto.getDeviceId(),
                     dto.getReservationDate(),
@@ -89,7 +88,7 @@ public class ServiceReservationServiceImpl implements ServiceReservationService 
             );
 
             if (conflictCount > 0) {
-                throw new BaseException("该时间段已被预约，请重新选择时间。");
+                throw new BaseException("该时间段已被预约, 请重新选择时间.");
             }
 
             // 4. 数据入库
@@ -102,7 +101,7 @@ public class ServiceReservationServiceImpl implements ServiceReservationService 
             reservation.setUpdateTime(LocalDateTime.now());
 
             serviceReservationMapper.insert(reservation);
-            log.info("预约成功，预约单ID: {}", reservation.getId());
+            log.info("预约成功, 预约单ID: {}", reservation.getId());
 
         } finally {
             if (redisLocked) {
@@ -122,13 +121,13 @@ public class ServiceReservationServiceImpl implements ServiceReservationService 
         List<AvailableTimeSlotVO> slots = new ArrayList<>();
         LocalTime slotStart = businessStart;
 
-        // 按固定1小时划分时段，过滤已被预约的
+        // 按固定1小时划分时段, 过滤已被预约的
         while (slotStart.isBefore(businessEnd)) {
             LocalTime slotEnd = slotStart.plusHours(1);
             if (slotEnd.isAfter(businessEnd)) {
                 slotEnd = businessEnd;
             }
-            // 跳过已过去的时间段（仅限今天）
+            // 跳过已过去的时间段 (仅限今天)
             if (reservationDate.equals(LocalDate.now()) && slotStart.isBefore(LocalTime.now())) {
                 slotStart = slotEnd;
                 continue;
@@ -151,7 +150,7 @@ public class ServiceReservationServiceImpl implements ServiceReservationService 
 
     @Override
     public void cancelReservation(Long id) {
-        log.info("学生请求取消预约，预约单ID：{}", id);
+        log.info("学生请求取消预约, 预约单ID: {}", id);
 
         ServiceReservation reservation = serviceReservationMapper.getById(id);
         if (reservation == null) {
@@ -160,7 +159,7 @@ public class ServiceReservationServiceImpl implements ServiceReservationService 
 
         Long currentStudentId = BaseContext.getCurrentId();
         if (!reservation.getStudentId().equals(currentStudentId)) {
-            throw new BaseException("非法操作：无权取消他人的预约！");
+            throw new BaseException("非法操作: 无权取消他人的预约！");
         }
 
         if (reservation.getStatus() != 0) {
@@ -169,12 +168,12 @@ public class ServiceReservationServiceImpl implements ServiceReservationService 
 
         LocalDateTime reserveStartTime = LocalDateTime.of(reservation.getReservationDate(), reservation.getStartTime());
         if (LocalDateTime.now().isAfter(reserveStartTime)) {
-            throw new BaseException("预约时间已开始或已过期，无法取消！");
+            throw new BaseException("预约时间已开始或已过期, 无法取消！");
         }
 
-        // 【核心修复】：依据毕设表结构设计，状态 2 为已取消（绝不能写成 3）
+        // 【核心修复】: 依据毕设表结构设计, 状态 2 为已取消 (绝不能写成 3)
         serviceReservationMapper.updateStatus(id, 2, LocalDateTime.now());
-        // 广播时段释放消息，其他学生可刷新可用时段
+        // 广播时段释放消息, 其他学生可刷新可用时段
         webSocketServer.sendToAllClient("{\"type\":\"reservation_changed\"}");
     }
 

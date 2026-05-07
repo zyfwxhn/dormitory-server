@@ -36,9 +36,9 @@ public class JwtTokenStudentInterceptor implements HandlerInterceptor {
             log.info("学生端 JWT 校验: {}", token);
             Claims claims = JwtUtil.parseJWT(jwtProperties.getStudentSecretKey(), token);
 
-            // 【重构点】使用常量替换魔法字符串 "studentId"
+            // 将学生ID存入ThreadLocal
             Long studentId = Long.valueOf(claims.get(JwtClaimsConstant.STUDENT_ID).toString());
-            log.info("当前登录的学生ID：{}", studentId);
+            log.info("当前登录的学生ID: {}", studentId);
 
             BaseContext.setCurrentId(studentId);
             return true;

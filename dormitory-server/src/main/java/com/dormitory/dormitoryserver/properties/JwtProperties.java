@@ -16,14 +16,14 @@ public class JwtProperties {
     private String studentTokenName;
 
     /**
-     * 维修员端生成jwt令牌相关配置 (新增)
+     * 维修员端生成jwt令牌相关配置
      */
     private String workerSecretKey;
     private long workerTtl;
     private String workerTokenName;
 
     /**
-     * 管理员端生成jwt令牌相关配置 (再次新增)
+     * 管理员端生成jwt令牌相关配置
      */
     private String adminSecretKey;
     private long adminTtl;

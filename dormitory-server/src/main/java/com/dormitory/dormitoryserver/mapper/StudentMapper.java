@@ -13,7 +13,7 @@ public interface StudentMapper {
 
     /**
      * 根据学号查询学生
-     * 用于：1. 登录时校验账号密码；2. 注册时检查学号是否被占用
+     * 用于: 1. 登录时校验账号密码；2. 注册时检查学号是否被占用
      *
      * @param studentNo 学号
      * @return 学生实体对象
@@ -22,7 +22,7 @@ public interface StudentMapper {
 
     /**
      * 插入新的学生记录
-     * 用于：学生注册
+     * 用于: 学生注册
      *
      * @param student 学生实体对象
      */
@@ -39,7 +39,7 @@ public interface StudentMapper {
     void insertBatch(@org.apache.ibatis.annotations.Param("students") java.util.List<com.dormitory.dormitoryserver.entity.Student> students);
 
     /**
-     * 动态更新学生信息（密码等）
+     * 动态更新学生信息
      */
     void update(Student student);
 }

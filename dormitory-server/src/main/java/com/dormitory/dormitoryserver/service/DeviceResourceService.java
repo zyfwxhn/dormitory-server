@@ -19,7 +19,7 @@ public interface DeviceResourceService {
     void startOrStop(Integer status, Long id);
 
     /**
-     * 批量导入设备（Excel）
+     * 批量导入设备 (Excel)
      */
     void importDeviceList(List<DeviceExcelDTO> list);
 }

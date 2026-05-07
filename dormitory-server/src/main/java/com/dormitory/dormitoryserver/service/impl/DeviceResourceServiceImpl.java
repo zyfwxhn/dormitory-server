@@ -38,7 +38,7 @@ public class DeviceResourceServiceImpl implements DeviceResourceService {
 
     @Override
     public PageResult pageQuery(DeviceResourcePageQueryDTO pageQueryDTO) {
-        // 归一化 buildingNo：去掉"号楼"后缀，中文数字转阿拉伯数字
+        // 归一化 buildingNo: 去掉"号楼"后缀, 中文数字转阿拉伯数字
         String raw = pageQueryDTO.getBuildingNo();
         if (raw != null && !raw.isEmpty()) {
             raw = raw.replace("号楼", "");
@@ -47,7 +47,7 @@ public class DeviceResourceServiceImpl implements DeviceResourceService {
             }
             pageQueryDTO.setBuildingNo(raw);
         }
-        log.info("设备资源分页查询：{}", pageQueryDTO);
+        log.info("设备资源分页查询: {}", pageQueryDTO);
         PageHelper.startPage(pageQueryDTO.getPage(), pageQueryDTO.getPageSize());
         Page<DeviceResource> page = deviceResourceMapper.pageQuery(pageQueryDTO);
         return new PageResult(page.getTotal(), page.getResult());
@@ -55,18 +55,12 @@ public class DeviceResourceServiceImpl implements DeviceResourceService {
 
     @Override
     public void save(DeviceResourceDTO deviceResourceDTO) {
-        log.info("新增设备资源：{}", deviceResourceDTO);
+        log.info("新增设备资源: {}", deviceResourceDTO);
         DeviceResource deviceResource = new DeviceResource();
-
-        // 对象属性拷贝 (将 DTO 拷贝到 Entity)
         BeanUtils.copyProperties(deviceResourceDTO, deviceResource);
-
-        // 如果前端没传状态，默认设置为正常可用 (消灭魔法值！)
         if(deviceResource.getStatus() == null) {
             deviceResource.setStatus(StatusConstant.ENABLE);
         }
-
-        // 设置时间
         deviceResource.setCreateTime(LocalDateTime.now());
         deviceResource.setUpdateTime(LocalDateTime.now());
 
@@ -75,7 +69,7 @@ public class DeviceResourceServiceImpl implements DeviceResourceService {
 
     @Override
     public void update(DeviceResourceDTO deviceResourceDTO) {
-        log.info("修改设备资源：{}", deviceResourceDTO);
+        log.info("修改设备资源: {}", deviceResourceDTO);
         DeviceResource deviceResource = new DeviceResource();
         BeanUtils.copyProperties(deviceResourceDTO, deviceResource);
         deviceResource.setUpdateTime(LocalDateTime.now());
@@ -85,7 +79,7 @@ public class DeviceResourceServiceImpl implements DeviceResourceService {
 
     @Override
     public void deleteBatch(List<Long> ids) {
-        log.info("批量删除设备资源：{}", ids);
+        log.info("批量删除设备资源: {}", ids);
         if (ids != null && !ids.isEmpty()) {
             deviceResourceMapper.deleteBatch(ids);
         }
@@ -93,14 +87,14 @@ public class DeviceResourceServiceImpl implements DeviceResourceService {
 
     @Override
     public void startOrStop(Integer status, Long id) {
-        log.info("启用禁用设备：id={}, status={}", id, status);
+        log.info("启用禁用设备: id={}, status={}", id, status);
         DeviceResource deviceResource = DeviceResource.builder()
                 .id(id)
                 .status(status)
                 .updateTime(LocalDateTime.now())
                 .build();
         deviceResourceMapper.update(deviceResource);
-        // 广播设备状态变更，通知所有在线学生刷新设备列表
+        // 通知在线学生刷新设备列表
         webSocketServer.sendToAllClient("{\"type\":\"device_status_changed\"}");
     }
 

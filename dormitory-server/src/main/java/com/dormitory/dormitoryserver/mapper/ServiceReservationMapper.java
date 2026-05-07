@@ -28,12 +28,12 @@ public interface ServiceReservationMapper {
     int autoCompleteExpiredReservations();
 
     /**
-     * 【定时任务专用】查询即将被标记完成的过期预约（用于推送通知）
+     * 【定时任务专用】查询即将被标记完成的过期预约
      */
     List<ServiceReservation> getExpiredReservations();
 
     /**
-     * 【定时任务专用】查询即将开始的预约（5-15分钟内），用于开始前提醒
+     * 【定时任务专用】查询即将开始的预约 (5-15分钟内), 用于开始前提醒
      */
     List<ServiceReservation> getUpcomingReservations();
 
@@ -43,7 +43,7 @@ public interface ServiceReservationMapper {
     void insert(ServiceReservation reservation);
 
     /**
-     * 查询指定时间段内是否有冲突 (这个复杂的也可以顺便移进XML)
+     * 查询指定时间段内是否有冲突
      */
     int checkConflict(@Param("deviceId") Long deviceId,
                       @Param("date") LocalDate date,
@@ -56,12 +56,12 @@ public interface ServiceReservationMapper {
     List<ServiceReservation> getValidReservationsByDeviceAndDate(@Param("deviceId") Long deviceId, @Param("date") LocalDate date);
 
     /**
-     * 学生端分页查询自己的预约记录（关联设备名）
+     * 学生端分页查询自己的预约记录
      */
     Page<ServiceReservation> pageByStudentId(@Param("studentId") Long studentId);
 
     /**
-     * 管理员端：分页查询所有预约记录（关联学生名和设备名）
+     * 管理员端: 分页查询所有预约记录
      */
     Page<ServiceReservation> adminPageQuery(@Param("status") Integer status, @Param("studentNo") String studentNo);
 }

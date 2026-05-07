@@ -28,6 +28,9 @@
           </template>
         </el-table-column>
         <el-table-column prop="title" label="标题" min-width="160" show-overflow-tooltip />
+        <el-table-column label="发布人" width="140">
+          <template #default="scope">{{ scope.row.studentName || '--' }} ({{ scope.row.studentNo || '--' }})</template>
+        </el-table-column>
         <el-table-column prop="category" label="分类" width="100" />
         <el-table-column prop="contactInfo" label="联系方式" width="140" />
         <el-table-column label="状态" width="100" align="center">
@@ -79,6 +82,9 @@
       <el-table :data="shTableData" v-loading="shLoading" border stripe style="margin-top: 12px;">
         <el-table-column type="index" label="序号" width="60" align="center" />
         <el-table-column prop="name" label="商品名称" min-width="160" show-overflow-tooltip />
+        <el-table-column label="卖家" width="140">
+          <template #default="scope">{{ scope.row.studentName || '--' }} ({{ scope.row.studentNo || '--' }})</template>
+        </el-table-column>
         <el-table-column prop="category" label="分类" width="100" />
         <el-table-column label="价格" width="110" align="center">
           <template #default="scope"><span style="color:#f56c6c;font-weight:600;">¥{{ scope.row.price }}</span></template>
@@ -113,23 +119,33 @@
     </el-card>
 
     <!-- 失物招领详情弹窗 -->
-    <el-dialog v-model="lfDetailVisible" title="失物招领详情" width="500px">
+    <el-dialog v-model="lfDetailVisible" title="失物招领详情" width="520px">
       <el-descriptions :column="1" border v-if="lfDetail.id">
         <el-descriptions-item label="标题">{{ lfDetail.title }}</el-descriptions-item>
         <el-descriptions-item label="描述">{{ lfDetail.description }}</el-descriptions-item>
         <el-descriptions-item label="联系方式">{{ lfDetail.contactInfo }}</el-descriptions-item>
         <el-descriptions-item label="发布时间">{{ lfDetail.createTime }}</el-descriptions-item>
+        <el-descriptions-item v-if="lfDetail.images" label="物品照片">
+          <div class="detail-images">
+            <el-image v-for="(url, idx) in lfDetail.images.split(',')" :key="idx" :src="url" style="width:120px;height:120px;margin-right:8px;" :preview-src-list="lfDetail.images.split(',')" fit="cover" />
+          </div>
+        </el-descriptions-item>
       </el-descriptions>
       <template #footer><el-button @click="lfDetailVisible = false">关闭</el-button></template>
     </el-dialog>
 
     <!-- 二手详情弹窗 -->
-    <el-dialog v-model="shDetailVisible" title="商品详情" width="500px">
+    <el-dialog v-model="shDetailVisible" title="商品详情" width="520px">
       <el-descriptions :column="1" border v-if="shDetail.id">
         <el-descriptions-item label="名称">{{ shDetail.name }}</el-descriptions-item>
         <el-descriptions-item label="描述">{{ shDetail.description }}</el-descriptions-item>
         <el-descriptions-item label="价格">¥{{ shDetail.price }}</el-descriptions-item>
         <el-descriptions-item label="发布时间">{{ shDetail.createTime }}</el-descriptions-item>
+        <el-descriptions-item v-if="shDetail.images" label="商品图片">
+          <div class="detail-images">
+            <el-image v-for="(url, idx) in shDetail.images.split(',')" :key="idx" :src="url" style="width:120px;height:120px;margin-right:8px;" :preview-src-list="shDetail.images.split(',')" fit="cover" />
+          </div>
+        </el-descriptions-item>
       </el-descriptions>
       <template #footer><el-button @click="shDetailVisible = false">关闭</el-button></template>
     </el-dialog>
@@ -216,4 +232,5 @@ onMounted(() => fetchLostFound())
 .filter-bar { display: flex; align-items: center; margin-bottom: 4px; }
 .table-card { }
 .pagination-wrapper { margin-top: 20px; display: flex; justify-content: flex-end; }
+.detail-images { display: flex; flex-wrap: wrap; }
 </style>

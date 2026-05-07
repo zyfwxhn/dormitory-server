@@ -92,7 +92,7 @@
           />
         </el-form-item>
 
-        <el-form-item label="现场照片 (最多3张)">
+        <el-form-item label="现场照片" required>
           <el-upload
             :action="uploadUrl"
             :headers="uploadHeaders"
@@ -171,7 +171,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { getMyRepairPage, submitRepair, cancelRepair, evaluateRepair, getRepairDetail } from '@/api/repair'
 
-// === 核心数据与状态 ===
+// === 数据与状态 ===
 const loading = ref(false)
 const submitLoading = ref(false)
 const drawerVisible = ref(false)
@@ -252,6 +252,10 @@ const openDrawer = () => {
 const submitForm = () => {
   formRef.value.validate(async (valid) => {
     if (!valid) return
+    if (uploadedImages.value.length === 0) {
+      ElMessage.warning('请至少上传一张现场照片')
+      return
+    }
     submitLoading.value = true
     try {
       await submitRepair({

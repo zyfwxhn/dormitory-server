@@ -32,7 +32,7 @@ public class StudentController {
 
     @PostMapping("/login")
     public Result<StudentLoginVO> login(@RequestBody @Validated StudentLoginDTO studentLoginDTO) {
-        log.info("学生登录：{}", studentLoginDTO.getStudentNo());
+        log.info("学生登录: {}", studentLoginDTO.getStudentNo());
 
         Student student = studentService.login(studentLoginDTO);
 
@@ -75,7 +75,7 @@ public class StudentController {
      */
     @PutMapping("/profile")
     public Result updateProfile(@RequestBody StudentProfileDTO dto) {
-        log.info("学生修改个人信息：{}", dto);
+        log.info("学生修改个人信息: {}", dto);
         studentService.updateProfile(dto);
         return Result.success();
     }
@@ -86,7 +86,7 @@ public class StudentController {
     @PutMapping("/avatar")
     public Result updateAvatar(@RequestBody Map<String, String> body) {
         String avatarUrl = body.get("avatar");
-        log.info("学生修改头像：{}", avatarUrl);
+        log.info("学生修改头像: {}", avatarUrl);
         studentService.updateAvatar(avatarUrl);
         return Result.success();
     }

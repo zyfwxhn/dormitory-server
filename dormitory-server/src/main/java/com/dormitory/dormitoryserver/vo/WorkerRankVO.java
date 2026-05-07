@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * 维修员历史完单量 Top 排行 VO (ECharts 柱状图/排行榜格式)
+ * 维修员历史完单量 Top 排行 VO
  */
 @Data
 @Builder

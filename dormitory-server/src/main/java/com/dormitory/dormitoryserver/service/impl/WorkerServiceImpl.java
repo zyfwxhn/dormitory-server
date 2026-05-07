@@ -35,7 +35,7 @@ public class WorkerServiceImpl implements WorkerService {
         String username = workerLoginDTO.getUsername();
         String password = workerLoginDTO.getPassword();
 
-        // 1. 调用 Mapper，仅根据账号查出该人
+        // 1. 调用 Mapper, 仅根据账号查出该人
         Worker worker = workerMapper.getByUsername(username);
 
         // 2. 校验账号是否存在
@@ -45,14 +45,14 @@ public class WorkerServiceImpl implements WorkerService {
 
         // 3. 【业务亮点】校验账号是否被禁用 (isAvailable == 0)
         if (worker.getIsAvailable() != null && worker.getIsAvailable() == 0) {
-            throw new BaseException("该账号已被停用，请联系管理员");
+            throw new BaseException("该账号已被停用, 请联系管理员");
         }
 
         if (!PasswordUtil.matches(password, worker.getPassword())) {
             throw new BaseException("密码错误");
         }
 
-        // 6. 校验全数通过，返回完整的实体对象（供 Controller 签发 JWT）
+        // 6. 校验全数通过, 返回完整的实体对象 (供 Controller 签发 JWT)
         return worker;
     }
 

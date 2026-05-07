@@ -32,9 +32,10 @@
     </select>
 
     <select id="adminPageQuery" resultType="com.dormitory.dormitoryserver.entity.RepairOrder">
-        SELECT r.*, s.name AS studentName, s.student_no AS studentNo, s.phone AS studentPhone
+        SELECT r.*, s.name AS studentName, s.student_no AS studentNo, s.phone AS studentPhone, w.name AS workerName
         FROM repair_order r
         LEFT JOIN student s ON r.student_id = s.id
+        LEFT JOIN worker w ON r.worker_id = w.id
         <where>
             <if test="status != null">
                 AND status = #{status}
@@ -86,7 +87,7 @@
                 and worker_id = #{workerId}
             </if>
             <if test="dto.status == null">
-                and (status = 0 or worker_id = #{workerId})
+                and worker_id = #{workerId}
             </if>
         </where>
         order by create_time desc

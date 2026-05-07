@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 数据统计看板总览 VO（聚合对象）
+ * 数据统计看板总览 VO
  */
 @Data
 @Builder

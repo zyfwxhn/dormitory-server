@@ -26,7 +26,7 @@ public class SecondhandItemAdminController {
 
     @PutMapping("/violate")
     public Result violate(@RequestBody @Validated ViolationReviewDTO dto) {
-        log.info("管理员强制下架二手商品：{}", dto);
+        log.info("管理员强制下架二手商品: {}", dto);
         secondhandItemService.violate(dto);
         return Result.success("该商品已成功违规下架");
     }

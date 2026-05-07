@@ -29,7 +29,7 @@ public class AliOssUtil {
         String accessKeySecret = aliOssProperties.getAccessKeySecret();
         String bucketName = aliOssProperties.getBucketName();
 
-        // 1. 生成新的文件名，防止出现重名文件被覆盖 (UUID + 原扩展名)
+        // 1. 生成新的文件名, 防止出现重名文件被覆盖 (UUID + 原扩展名)
         String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         String objectName = UUID.randomUUID().toString() + extension;
 
@@ -50,9 +50,9 @@ public class AliOssUtil {
         }
 
         // 4. 拼接并返回文件的访问路径
-        // 格式: https://{bucketName}.{endpoint}/{objectName}
-        String url = "https://" + bucketName + "." + endpoint + "/" + objectName;
-        log.info("文件上传完成，访问URL: {}", url);
+        // 格式: https:// {bucketName}.{endpoint}/{objectName}
+        String url = "https:// " + bucketName + "." + endpoint + "/" + objectName;
+        log.info("文件上传完成, 访问URL: {}", url);
         return url;
     }
 }

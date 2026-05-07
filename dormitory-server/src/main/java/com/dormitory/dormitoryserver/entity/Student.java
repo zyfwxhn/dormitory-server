@@ -19,23 +19,23 @@ public class Student implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Long id;                // 主键，自增
+    private Long id;                // 主键, 自增
 
-    private String studentNo;       // 学号（对应数据库 student_no）
+    private String studentNo;       // 学号
 
     private String password;        // 密码
 
     private String name;            // 姓名
 
-    private String gender;          // 性别（0:女, 1:男）
+    private String gender;          // 性别 (0:女, 1:男)
 
     private String grade;           // 年级
 
     private String phone;           // 手机号
 
-    private String buildingNo;      // 楼栋号（对应数据库 building_no）
+    private String buildingNo;      // 楼栋号
 
-    private String roomNo;          // 宿舍号（对应数据库 room_no）
+    private String roomNo;          // 宿舍号
 
     private String avatar;          // 头像链接
 

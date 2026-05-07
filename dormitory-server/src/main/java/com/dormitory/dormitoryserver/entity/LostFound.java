@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class LostFound {
 
     /**
-     * 主键，自增
+     * 主键, 自增
      */
     private Long id;
 
@@ -26,7 +26,7 @@ public class LostFound {
     private Long studentId;
 
     /**
-     * 信息类型（0: 寻物启事-我丢了东西, 1: 失物招领-我捡了东西）
+     * 信息类型 (0: 寻物启事-我丢了东西, 1: 失物招领-我捡了东西)
      */
     private Integer type;
 
@@ -41,7 +41,7 @@ public class LostFound {
     private String description;
 
     /**
-     * 物品分类（如：校园卡、数码产品、书籍资料）
+     * 物品分类 (如: 校园卡、数码产品、书籍资料)
      */
     private String category;
 
@@ -51,17 +51,17 @@ public class LostFound {
     private String location;
 
     /**
-     * 联系方式（手机号或微信号）
+     * 联系方式 (手机号或微信号)
      */
     private String contactInfo;
 
     /**
-     * 图片链接（逗号分隔，存OSS地址）
+     * 图片链接 (逗号分隔, 存OSS地址)
      */
     private String images;
 
     /**
-     * 状态（0: 寻找中/待认领, 1: 已解决, 2: 已撤销）
+     * 状态 (0: 寻找中/待认领, 1: 已解决, 2: 已撤销)
      */
     private Integer status;
 
@@ -75,7 +75,7 @@ public class LostFound {
      */
     private LocalDateTime updateTime;
 
-    // === 关联学生信息（查询时 JOIN 填充） ===
+    // === 关联学生信息 (查询时 JOIN 填充) ===
     private String studentName;      // 发布人姓名
     private String studentNo;        // 发布人学号
     private String studentAvatar;    // 发布人头像

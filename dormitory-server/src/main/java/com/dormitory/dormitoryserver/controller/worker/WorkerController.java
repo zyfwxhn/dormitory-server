@@ -29,7 +29,7 @@ public class WorkerController {
 
     @PostMapping("/login")
     public Result<WorkerLoginVO> login(@RequestBody @Validated WorkerLoginDTO workerLoginDTO) {
-        log.info("维修员登录：{}", workerLoginDTO.getUsername());
+        log.info("维修员登录: {}", workerLoginDTO.getUsername());
 
         Worker worker = workerService.login(workerLoginDTO);
 
@@ -72,7 +72,7 @@ public class WorkerController {
      */
     @PutMapping("/skills")
     public Result updateSkills(@RequestParam String skills) {
-        log.info("维修员更新技能：{}", skills);
+        log.info("维修员更新技能: {}", skills);
         workerService.updateSkills(skills);
         return Result.success();
     }
@@ -82,7 +82,7 @@ public class WorkerController {
      */
     @PutMapping("/profile")
     public Result updateProfile(@RequestBody WorkerProfileDTO dto) {
-        log.info("维修员修改个人信息：{}", dto);
+        log.info("维修员修改个人信息: {}", dto);
         workerService.updateProfile(dto);
         return Result.success();
     }

@@ -22,12 +22,12 @@ public class LostFoundSubmitDTO {
     @NotBlank(message = "物品分类不能为空")
     private String category;
 
-    // 地点非必填，可以为空
+    // 地点非必填, 可以为空
     private String location;
 
     @NotBlank(message = "联系方式不能为空")
     private String contactInfo;
 
-    // 图片也是非必填的（有些丢东西的人可能没有拍照片）
+    // 图片是非必填的 (有些丢东西的人可能没有拍照片)
     private String images;
 }

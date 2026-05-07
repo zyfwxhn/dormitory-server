@@ -163,3 +163,17 @@ CREATE TABLE `notification` (
 
 ALTER TABLE `repair_order`
 ADD COLUMN `finish_images` varchar(1024) DEFAULT NULL COMMENT '维修完工照片（多张用逗号分隔，存OSS地址）' AFTER `status`;
+
+ALTER TABLE service_reservation ADD INDEX idx_device_date (device_id, reservation_date);
+ALTER TABLE service_reservation ADD INDEX idx_student_id (student_id);
+ALTER TABLE service_reservation ADD INDEX idx_status (status);
+ALTER TABLE service_reservation ADD UNIQUE KEY uk_device_date_time (device_id, reservation_date, start_time);
+
+ALTER TABLE lost_found ADD INDEX idx_type_status (type, status);
+ALTER TABLE lost_found ADD INDEX idx_student_id (student_id);
+ALTER TABLE lost_found ADD INDEX idx_category (category);
+
+ALTER TABLE secondhand_item ADD INDEX idx_status (status);
+ALTER TABLE secondhand_item ADD INDEX idx_student_id (student_id);
+ALTER TABLE secondhand_item ADD INDEX idx_category (category);
+ALTER TABLE item_message ADD INDEX idx_item_id (item_id);

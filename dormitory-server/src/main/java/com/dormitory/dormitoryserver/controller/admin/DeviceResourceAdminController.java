@@ -35,7 +35,7 @@ public class DeviceResourceAdminController {
      */
     @GetMapping("/page")
     public Result<PageResult> page(DeviceResourcePageQueryDTO pageQueryDTO) {
-        log.info("管理员端设备分页查询，参数：{}", pageQueryDTO);
+        log.info("管理员端设备分页查询, 参数: {}", pageQueryDTO);
         PageResult pageResult = deviceResourceService.pageQuery(pageQueryDTO);
         return Result.success(pageResult);
     }
@@ -47,7 +47,7 @@ public class DeviceResourceAdminController {
      */
     @PostMapping
     public Result save(@RequestBody @Validated DeviceResourceDTO deviceResourceDTO) {
-        log.info("管理员端新增设备资源：{}", deviceResourceDTO);
+        log.info("管理员端新增设备资源: {}", deviceResourceDTO);
         deviceResourceService.save(deviceResourceDTO);
         return Result.success();
     }
@@ -59,7 +59,7 @@ public class DeviceResourceAdminController {
      */
     @PutMapping
     public Result update(@RequestBody @Validated DeviceResourceDTO deviceResourceDTO) {
-        log.info("管理员端修改设备信息：{}", deviceResourceDTO);
+        log.info("管理员端修改设备信息: {}", deviceResourceDTO);
         deviceResourceService.update(deviceResourceDTO);
         return Result.success();
     }
@@ -71,30 +71,30 @@ public class DeviceResourceAdminController {
      */
     @DeleteMapping
     public Result delete(@RequestParam List<Long> ids) {
-        log.info("管理员端批量删除设备，IDs：{}", ids);
+        log.info("管理员端批量删除设备, IDs: {}", ids);
         deviceResourceService.deleteBatch(ids);
         return Result.success();
     }
 
     /**
      * 启用或禁用设备状态
-     * @param status 目标状态（1启用，0禁用）
+     * @param status 目标状态 (1启用, 0禁用)
      * @param id 设备主键 ID
      * @return 统一返回成功结果
      */
     @PostMapping("/status/{status}")
     public Result startOrStop(@PathVariable Integer status, Long id) {
-        log.info("管理员端切换设备状态：id={}, status={}", id, status);
+        log.info("管理员端切换设备状态: id={}, status={}", id, status);
         deviceResourceService.startOrStop(status, id);
         return Result.success();
     }
 
     /**
-     * 批量导入设备（Excel）
+     * 批量导入设备 (Excel)
      */
     @PostMapping("/import")
     public Result importDevices(@RequestParam("file") MultipartFile file) {
-        log.info("管理员请求批量导入设备：{}", file.getOriginalFilename());
+        log.info("管理员请求批量导入设备: {}", file.getOriginalFilename());
         try {
             List<DeviceExcelDTO> list = EasyExcel.read(file.getInputStream())
                     .head(DeviceExcelDTO.class).sheet().doReadSync();
@@ -102,7 +102,7 @@ public class DeviceResourceAdminController {
             return Result.success("批量导入设备成功！共导入 " + list.size() + " 条");
         } catch (IOException e) {
             log.error("Excel读取失败", e);
-            return Result.error("导入失败：" + e.getMessage());
+            return Result.error("导入失败: " + e.getMessage());
         }
     }
 }

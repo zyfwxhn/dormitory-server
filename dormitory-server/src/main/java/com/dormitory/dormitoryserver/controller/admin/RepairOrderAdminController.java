@@ -11,7 +11,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 管理端/维修员端：报修订单管理接口
+ * 管理端/维修员端: 报修订单管理接口
  */
 @RestController
 @RequestMapping("/admin/repair")
@@ -29,12 +29,8 @@ public class RepairOrderAdminController {
      */
     @GetMapping("/page")
     public Result<PageResult> pageQuery(RepairOrderAdminPageQueryDTO queryDTO) {
-        log.info("管理端分页查询报修单参数：{}", queryDTO);
-
-        // 调用 Service 层核心逻辑
+        log.info("管理端分页查询报修单参数: {}", queryDTO);
         PageResult pageResult = repairOrderService.adminPageQuery(queryDTO);
-
-        // 包装为全局统一响应格式返回给 Vue3
         return Result.success(pageResult);
     }
 
@@ -43,7 +39,7 @@ public class RepairOrderAdminController {
      */
     @GetMapping("/{id}")
     public Result<RepairOrder> getDetail(@PathVariable Long id) {
-        log.info("管理员查询报修单详情：{}", id);
+        log.info("管理员查询报修单详情: {}", id);
         return Result.success(repairOrderService.getDetailById(id));
     }
 
@@ -54,7 +50,7 @@ public class RepairOrderAdminController {
      */
     @PostMapping("/dispatch/{id}")
     public Result dispatch(@PathVariable Long id) {
-        log.info("管理员触发智能派单，订单ID：{}", id);
+        log.info("管理员触发智能派单, 订单ID: {}", id);
         repairOrderService.autoDispatch(id);
         return Result.success("智能派单成功！");
     }

@@ -207,6 +207,7 @@ const handleAvatarSuccess = async (resp) => {
   if (!url) { ElMessage.error('上传失败'); return }
   await updateAvatar(url)
   info.value.avatar = url
+  window.dispatchEvent(new CustomEvent('avatar-updated'))
   ElMessage.success('头像更新成功')
 }
 const beforeAvatarUpload = (file) => {

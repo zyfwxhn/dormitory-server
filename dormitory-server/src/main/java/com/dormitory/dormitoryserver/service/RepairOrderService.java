@@ -22,14 +22,14 @@ public interface RepairOrderService {
     RepairOrder getDetail(Long id);
 
     /**
-     * 管理端：历史报修订单动态分页查询
+     * 管理端: 历史报修订单动态分页查询
      * @param queryDTO 管理端分页和高级筛选条件
      * @return 统一分页结果
      */
     PageResult adminPageQuery(RepairOrderAdminPageQueryDTO queryDTO);
 
     /**
-     * 维修员接单/完成维修 (状态流转)
+     * 维修员接单/完成维修
      * @param dto 包含订单id和目标状态
      */
     void updateStatus(RepairOrderUpdateStatusDTO dto);
@@ -43,7 +43,7 @@ public interface RepairOrderService {
     void cancelOrder(Long id);
 
     /**
-     * 按ID查询报修单详情（管理员/维修员使用，不校验学生身份）
+     * 按ID查询报修单详情 (管理员/维修员使用, 不校验学生身份)
      */
     RepairOrder getDetailById(Long id);
 

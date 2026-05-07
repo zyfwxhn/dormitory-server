@@ -26,7 +26,7 @@ public class LostFoundAdminController {
 
     @PutMapping("/violate")
     public Result violate(@RequestBody @Validated ViolationReviewDTO dto) {
-        log.info("管理员强制下架失物招领信息：{}", dto);
+        log.info("管理员强制下架失物招领信息: {}", dto);
         lostFoundService.violate(dto);
         return Result.success("该信息已成功违规下架");
     }

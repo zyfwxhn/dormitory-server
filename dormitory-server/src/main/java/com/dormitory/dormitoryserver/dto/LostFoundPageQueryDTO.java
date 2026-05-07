@@ -15,18 +15,18 @@ public class LostFoundPageQueryDTO implements Serializable {
     @Max(value = 100, message = "每页最多100条")
     private int pageSize;
 
-    // 信息类型（0: 寻物启事, 1: 失物招领） - 可选
+    // 信息类型 (0: 寻物启事, 1: 失物招领)
     private Integer type;
 
-    // 物品分类（如：校园卡、数码产品） - 可选
+    // 物品分类 (如: 校园卡、数码产品)
     private String category;
 
-    // 标题（用于模糊搜索） - 可选
+    // 标题 (用于模糊搜索) - 可选
     private String title;
 
-    // 状态（通常学生端只会查 0:寻找中 的信息，但为了扩展性我们把它加上） - 可选
+    // 状态 (通常学生端只会查 0:寻找中 的信息, 但为了扩展性我们把它加上)
     private Integer status;
 
-    // 发布者学生ID（个人主页"我的记录"使用，大厅不传即为查全部） - 可选
+    // 发布者学生ID (个人主页"我的记录"使用, 大厅不传即为查全部)
     private Long studentId;
 }

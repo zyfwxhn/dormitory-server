@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 设备资源实体类（如洗衣机等）
+ * 设备资源实体类 (如洗衣机等)
  */
 @Data
 @Builder
@@ -24,7 +24,7 @@ public class DeviceResource implements Serializable {
     // 设备名称
     private String deviceName;
 
-    // 设备状态（1:正常可用, 0:故障/停用）
+    // 设备状态 (1:正常可用, 0:故障/停用)
     private Integer status;
 
     private LocalDateTime createTime;

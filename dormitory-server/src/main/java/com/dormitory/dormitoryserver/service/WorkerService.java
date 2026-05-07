@@ -29,7 +29,7 @@ public interface WorkerService {
     void updateProfile(com.dormitory.dormitoryserver.dto.WorkerProfileDTO dto);
 
     /**
-     * 批量导入维修员（Excel）
+     * 批量导入维修员 (Excel)
      */
     void importWorkerList(List<WorkerExcelDTO> list);
 }

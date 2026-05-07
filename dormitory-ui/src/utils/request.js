@@ -5,7 +5,7 @@ import router from '@/router';
 // 用于存储 loading 实例
 let loadingInstance = null;
 
-// 1. 创建 axios 实例
+// 创建 axios 实例
 const service = axios.create({
   // baseURL 会自动从 .env 文件中读取 VITE_APP_BASE_API 的值
   baseURL: import.meta.env.VITE_APP_BASE_API,
@@ -42,18 +42,17 @@ service.interceptors.request.use(
   }
 );
 
-// 3. 响应拦截器 (接收到后端数据后)
+// 3. 响应拦截器 
 service.interceptors.response.use(
   (response) => {
     // 关掉 loading
-    // if (loadingInstance) loadingInstance.close();
 
     // 拿到后端返回的 Result 对象
     const res = response.data;
 
     // 后端约定的成功 code 是 1
     if (res.code === 1) {
-      // 剥壳：直接返回里面的 data
+      //直接返回里面的 data
       return res.data;
     } else {
       // code 为 0 时，说明业务报错，弹出全局提示
@@ -62,7 +61,6 @@ service.interceptors.response.use(
     }
   },
   (error) => {
-    // if (loadingInstance) loadingInstance.close();
     
     // 处理 HTTP 状态码错误
     let message = '';

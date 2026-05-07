@@ -21,16 +21,10 @@ public class AdminServiceImpl implements AdminService {
     public Admin login(AdminLoginDTO adminLoginDTO) {
         String username = adminLoginDTO.getUsername();
         String password = adminLoginDTO.getPassword();
-
-        // 1. 查库
         Admin admin = adminMapper.getByUsername(username);
-
-        // 2. 判空
         if (admin == null) {
             throw new BaseException("管理员账号不存在");
         }
-
-        // 3. 验密码
         if (!PasswordUtil.matches(password, admin.getPassword())) {
             throw new BaseException("密码错误");
         }

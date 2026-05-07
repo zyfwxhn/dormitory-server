@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 学生端：设备资源查询
+ * 学生端: 设备资源查询
  */
 @RestController
 @RequestMapping("/student/device")
@@ -27,7 +27,7 @@ public class StudentDeviceController {
         dto.setPage(1);
         dto.setPageSize(100);
         dto.setStatus(1); // 只返回可用设备
-        dto.setBuildingNo(buildingNo); // 可选：按楼栋过滤
+        dto.setBuildingNo(buildingNo); // 可选: 按楼栋过滤
         log.info("学生查询可用设备列表, buildingNo={}", buildingNo);
         return Result.success(deviceResourceService.pageQuery(dto).getRecords());
     }

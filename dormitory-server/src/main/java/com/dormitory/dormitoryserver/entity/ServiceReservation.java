@@ -35,14 +35,14 @@ public class ServiceReservation implements Serializable {
     // 结束时间 (时分秒)
     private LocalTime endTime;
 
-    // 预约状态（0:预约中, 1:已完成, 2:已取消）
+    // 预约状态 (0:预约中, 1:已完成, 2:已取消)
     private Integer status;
 
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;
 
-    // === 关联查询字段（非数据库字段） ===
+    // === 关联查询字段 (非数据库字段) ===
     private String deviceName;        // 设备名称
     private String deviceBuildingNo;  // 设备所在楼栋
     private String studentName;       // 学生姓名

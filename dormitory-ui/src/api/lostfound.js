@@ -37,3 +37,11 @@ export const claimLostFound = (id) => {
     method: 'post'
   })
 }
+
+export const editLostFound = (id, data) => {
+  return request({
+    url: `/student/lost-found/${id}`,
+    method: 'put',
+    data
+  })
+}

@@ -52,6 +52,7 @@
             <span class="card-condition">{{ item.conditionLevel }}</span>
           </div>
           <div class="card-actions" v-if="item.studentId === currentUserId && item.status === 0" @click.stop>
+            <el-button type="warning" size="small" @click="openEdit(item)">编辑</el-button>
             <el-button type="success" size="small" @click="handleMarkSold(item.id)">标记售出</el-button>
             <el-button type="danger" size="small" @click="handleRemoveItem(item.id)">下架</el-button>
           </div>
@@ -72,7 +73,7 @@
     </div>
 
     <!-- 发布抽屉 -->
-    <el-drawer v-model="drawerVisible" title="发布商品" size="450px">
+    <el-drawer v-model="drawerVisible" :title="editId ? '编辑商品' : '发布商品'" size="450px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px" label-position="top">
         <el-form-item label="商品名称" prop="name">
           <el-input v-model="form.name" placeholder="如：高等数学教材" maxlength="64" show-word-limit />
@@ -198,7 +199,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, ShoppingCart } from '@element-plus/icons-vue'
-import { getSecondhandPage, publishSecondhand, updateSecondhandStatus, getSecondhandDetail, getItemMessages, sendItemMessage } from '@/api/secondhand'
+import { getSecondhandPage, publishSecondhand, editSecondhand, updateSecondhandStatus, getSecondhandDetail, getItemMessages, sendItemMessage } from '@/api/secondhand'
 import request from '@/utils/request'
 import { formatTime } from '@/utils/date'
 
@@ -245,6 +246,7 @@ const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726
 const drawerVisible = ref(false)
 const submitLoading = ref(false)
 const formRef = ref(null)
+const editId = ref(null)
 const form = reactive({ name: '', description: '', category: '', price: null, conditionLevel: '', images: '' })
 const uploadedImages = ref([])
 const rules = {
@@ -269,8 +271,19 @@ const handleRemove = (f) => {
 }
 
 const openPublish = () => {
+  editId.value = null
   Object.assign(form, { name: '', description: '', category: '', price: null, conditionLevel: '', images: '' })
   uploadedImages.value = []
+  drawerVisible.value = true
+}
+
+const openEdit = (item) => {
+  editId.value = item.id
+  Object.assign(form, {
+    name: item.name, description: item.description, category: item.category,
+    price: item.price, conditionLevel: item.conditionLevel, images: item.images || ''
+  })
+  uploadedImages.value = item.images ? item.images.split(',').filter(Boolean) : []
   drawerVisible.value = true
 }
 
@@ -283,8 +296,13 @@ const submitForm = () => {
     }
     submitLoading.value = true
     try {
-      await publishSecondhand({ ...form })
-      ElMessage.success('发布成功')
+      if (editId.value) {
+        await editSecondhand(editId.value, { ...form })
+        ElMessage.success('修改成功')
+      } else {
+        await publishSecondhand({ ...form })
+        ElMessage.success('发布成功')
+      }
       drawerVisible.value = false
       fetchData()
     } catch (e) { console.error(e) }
@@ -300,24 +318,29 @@ const newMessage = ref('')
 const msgSending = ref(false)
 const replyTarget = ref(null)
 
-// 构建楼层结构：将"回复 @"消息嵌套到原消息下方
+// 构建楼层结构：将"回复 @"消息嵌套到原消息下方（递归搜索，支持多级回复）
 const threadedMessages = computed(() => {
   const tops = []
+  const findTarget = (list, name) => {
+    for (const item of list) {
+      if (item.fromStudentName === name) return item
+      if (item._replies) {
+        const found = findTarget(item._replies, name)
+        if (found) return found
+      }
+    }
+    return null
+  }
   for (const msg of messages.value) {
     if (msg.content.startsWith('回复 @')) {
       const m = msg.content.match(/^回复 @(.+?)：/)
       if (m) {
-        let found = false
-        for (let i = tops.length - 1; i >= 0; i--) {
-          if (tops[i].fromStudentName === m[1]) {
-            if (!tops[i]._replies) tops[i]._replies = []
-            tops[i]._replies.push(msg)
-            found = true
-            break
-          }
+        const target = findTarget(tops, m[1])
+        if (target) {
+          if (!target._replies) target._replies = []
+          target._replies.push(msg)
+          continue
         }
-        if (!found) tops.push(msg) // 找不到原消息就当顶层显示
-        continue
       }
     }
     tops.push(msg)

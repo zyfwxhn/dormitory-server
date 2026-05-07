@@ -12,7 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 维修员端：报修订单业务接口
+ * 维修员端: 报修订单业务接口
  */
 @RestController
 @RequestMapping("/worker/repair")
@@ -30,7 +30,7 @@ public class RepairOrderWorkerController {
      */
     @PutMapping("/status")
     public Result updateStatus(@RequestBody @Validated RepairOrderUpdateStatusDTO dto) {
-        log.info("维修员端更新订单状态：{}", dto);
+        log.info("维修员端更新订单状态: {}", dto);
 
         repairOrderService.updateStatus(dto);
 
@@ -42,18 +42,18 @@ public class RepairOrderWorkerController {
      */
     @GetMapping("/{id}")
     public Result<RepairOrder> getDetail(@PathVariable Long id) {
-        log.info("维修员查询报修单详情：{}", id);
+        log.info("维修员查询报修单详情: {}", id);
         return Result.success(repairOrderService.getDetailById(id));
     }
 
     /**
-     * 维修员分页查询报修单 (抢单大厅 & 我的任务)
+     * 维修员分页查询报修单
      * @param dto 包含页码、页大小、以及目标状态
      * @return 分页结果
      */
     @GetMapping("/page")
     public Result<PageResult> pageQuery(RepairOrderPageQueryDTO dto) {
-        log.info("维修员分页查询报修单：{}", dto);
+        log.info("维修员分页查询报修单: {}", dto);
 
         PageResult pageResult = repairOrderService.workerPageQuery(dto);
 

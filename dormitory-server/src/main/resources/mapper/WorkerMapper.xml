@@ -24,6 +24,7 @@
         LIMIT 5
     </select>
 
+    <!-- 智能派单模型：Score = 技能匹配度(0.7) + 空闲程度(0.3) -->
     <select id="getSmartDispatchWorkerId" resultType="java.lang.Long">
         SELECT w.id
         FROM worker w
@@ -32,7 +33,7 @@
           AND (w.skills LIKE CONCAT('%', #{repairType}, '%')
                OR #{repairType} REGEXP REPLACE(w.skills, ',', '|'))
         GROUP BY w.id
-        ORDER BY COUNT(ro.id) ASC
+        ORDER BY (COUNT(ro.id) * 0.3) ASC
         LIMIT 1
     </select>
 

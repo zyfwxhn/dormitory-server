@@ -28,11 +28,9 @@ public class AdminController {
 
     @PostMapping("/login")
     public Result<AdminLoginVO> login(@RequestBody @Validated AdminLoginDTO adminLoginDTO) {
-        log.info("管理员登录：{}", adminLoginDTO.getUsername());
+        log.info("管理员登录: {}", adminLoginDTO.getUsername());
 
         Admin admin = adminService.login(adminLoginDTO);
-
-        // 签发管理员专属 Token
         Map<String, Object> claims = new HashMap<>();
         claims.put("adminId", admin.getId());
 

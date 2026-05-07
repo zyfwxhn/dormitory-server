@@ -51,6 +51,7 @@
             <span class="card-location" v-if="item.location">{{ item.location }}</span>
           </div>
           <div class="card-actions" v-if="item.studentId === currentUserId && item.status === 0" @click.stop>
+            <el-button type="warning" size="small" @click="openEdit(item)">编辑</el-button>
             <el-button type="success" size="small" @click="handleSolved(item.id)">标记解决</el-button>
             <el-button type="danger" size="small" @click="handleCancel(item.id)">撤销</el-button>
           </div>
@@ -76,7 +77,7 @@
     </div>
 
     <!-- 发布抽屉 -->
-    <el-drawer v-model="drawerVisible" title="发布信息" size="450px">
+    <el-drawer v-model="drawerVisible" :title="editId ? '编辑信息' : '发布信息'" size="450px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px" label-position="top">
         <el-form-item label="信息类型" prop="type">
           <el-radio-group v-model="form.type">
@@ -158,7 +159,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
-import { getLostFoundPage, publishLostFound, updateLostFoundStatus, claimLostFound } from '@/api/lostfound'
+import { getLostFoundPage, publishLostFound, editLostFound, updateLostFoundStatus, claimLostFound } from '@/api/lostfound'
 import request from '@/utils/request'
 
 const loading = ref(false)
@@ -199,6 +200,7 @@ const statusType = (s) => ({ 0: 'warning', 1: 'success', 2: 'info' }[s] || 'info
 const drawerVisible = ref(false)
 const submitLoading = ref(false)
 const formRef = ref(null)
+const editId = ref(null)
 const form = reactive({ type: 0, title: '', description: '', category: '', location: '', contactInfo: '', images: '' })
 const uploadedImages = ref([])
 const rules = {
@@ -222,8 +224,20 @@ const handleRemove = (f) => {
 }
 
 const openPublish = () => {
+  editId.value = null
   Object.assign(form, { type: 0, title: '', description: '', category: '', location: '', contactInfo: '', images: '' })
   uploadedImages.value = []
+  drawerVisible.value = true
+}
+
+const openEdit = (item) => {
+  editId.value = item.id
+  Object.assign(form, {
+    type: item.type, title: item.title, description: item.description,
+    category: item.category, location: item.location || '', contactInfo: item.contactInfo || '',
+    images: item.images || ''
+  })
+  uploadedImages.value = item.images ? item.images.split(',').filter(Boolean) : []
   drawerVisible.value = true
 }
 
@@ -232,8 +246,13 @@ const submitForm = () => {
     if (!valid) return
     submitLoading.value = true
     try {
-      await publishLostFound({ ...form })
-      ElMessage.success('发布成功')
+      if (editId.value) {
+        await editLostFound(editId.value, { ...form })
+        ElMessage.success('修改成功')
+      } else {
+        await publishLostFound({ ...form })
+        ElMessage.success('发布成功')
+      }
       drawerVisible.value = false
       fetchData()
     } catch (e) { console.error(e) }

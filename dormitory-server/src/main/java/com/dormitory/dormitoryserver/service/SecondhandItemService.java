@@ -39,7 +39,12 @@ public interface SecondhandItemService {
     void violate(ViolationReviewDTO dto);
 
     /**
-     * 管理员分页查询（不过滤 status）
+     * 管理员分页查询
      */
     PageResult adminPageQuery(SecondhandItemPageQueryDTO dto);
+
+    /**
+     * 学生编辑自己的二手商品
+     */
+    void edit(SecondhandItemSubmitDTO dto, Long id);
 }

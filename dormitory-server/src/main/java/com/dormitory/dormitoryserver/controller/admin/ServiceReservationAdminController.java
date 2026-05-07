@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 管理员端：生活服务预约管理
+ * 管理员端: 生活服务预约管理
  */
 @RestController
 @RequestMapping("/admin/reservation")
